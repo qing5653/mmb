@@ -1,0 +1,34 @@
+﻿experiment,feature,coef,abs_coef
+Constitution Interaction ElasticNetCV,气郁质*特禀质,0.0,0.0
+Constitution Interaction ElasticNetCV,血瘀质*特禀质,0.0,0.0
+Constitution Interaction ElasticNetCV,血瘀质*气郁质,0.0,0.0
+Constitution Interaction ElasticNetCV,湿热质*特禀质,0.0,0.0
+Constitution Interaction ElasticNetCV,湿热质*气郁质,0.0,0.0
+Constitution Interaction ElasticNetCV,湿热质*血瘀质,0.0,0.0
+Constitution Interaction ElasticNetCV,痰湿质*特禀质,0.0,0.0
+Constitution Interaction ElasticNetCV,痰湿质*气郁质,0.0,0.0
+Constitution Interaction ElasticNetCV,痰湿质*血瘀质,0.0,0.0
+Constitution Interaction ElasticNetCV,痰湿质*湿热质,0.0,0.0
+Constitution Interaction ElasticNetCV,阴虚质*特禀质,0.0,0.0
+Constitution Interaction ElasticNetCV,阴虚质*气郁质,0.0,0.0
+Constitution Interaction ElasticNetCV,阴虚质*血瘀质,0.0,0.0
+Constitution Interaction ElasticNetCV,阴虚质*湿热质,0.0,0.0
+Constitution Interaction ElasticNetCV,阴虚质*痰湿质,0.0,0.0
+Constitution L2 LogisticCV,气郁质,0.024805098438277242,0.024805098438277242
+Constitution L2 LogisticCV,气虚质,0.021934848559340914,0.021934848559340914
+Constitution L2 LogisticCV,血瘀质,-0.01635286526311435,0.01635286526311435
+Constitution L2 LogisticCV,湿热质,-0.01414466816550705,0.01414466816550705
+Constitution L2 LogisticCV,阴虚质,0.011212218177406625,0.011212218177406625
+Constitution L2 LogisticCV,阳虚质,-0.0063525389889090116,0.0063525389889090116
+Constitution L2 LogisticCV,特禀质,-0.005316423221139838,0.005316423221139838
+Constitution L2 LogisticCV,痰湿质,-0.004924136457565823,0.004924136457565823
+Constitution L2 LogisticCV,平和质,-0.003466798104973806,0.003466798104973806
+Constitution RandomForest,气郁质,0.12625938906716713,0.12625938906716713
+Constitution RandomForest,湿热质,0.11535891450911422,0.11535891450911422
+Constitution RandomForest,平和质,0.1134389888949409,0.1134389888949409
+Constitution RandomForest,血瘀质,0.11325377060028295,0.11325377060028295
+Constitution RandomForest,阴虚质,0.11278818993530872,0.11278818993530872
+Constitution RandomForest,阳虚质,0.11222709899363457,0.11222709899363457
+Constitution RandomForest,气虚质,0.10782246727389937,0.10782246727389937
+Constitution RandomForest,痰湿质,0.10177253429883475,0.10177253429883475
+Constitution RandomForest,特禀质,0.09707864642681746,0.09707864642681746

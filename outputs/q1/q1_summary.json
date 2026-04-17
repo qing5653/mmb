@@ -1,0 +1,64 @@
+{
+  "input_csv": "附件1_样例数据.csv",
+  "processed_dir": "data/processed",
+  "output_dir": "outputs/q1",
+  "seed": 42,
+  "sample_size": 1000,
+  "train_size": 700,
+  "val_size": 150,
+  "test_size": 150,
+  "candidate_feature_count": 10,
+  "selected_feature_count": 5,
+  "selected_features": [
+    "TG（甘油三酯）",
+    "TC（总胆固醇）",
+    "血尿酸",
+    "LDL-C（低密度脂蛋白）",
+    "HDL-C（高密度脂蛋白）"
+  ],
+  "diagnostics": {
+    "n_train": 700,
+    "n_val": 150,
+    "n_test": 150,
+    "log_likelihood": -352.2041526552142,
+    "llr_p_value": 0.36718693609802827,
+    "pseudo_r2_mcfadden": 0.01371702964058108,
+    "aic": 724.4083053104284,
+    "bic": 769.9191086608624,
+    "hosmer_lemeshow_stat": 4.267199546802155,
+    "hosmer_lemeshow_p": 0.8322469752101971,
+    "hosmer_lemeshow_bins": 10,
+    "val_auc": 0.43128219029547304,
+    "test_auc": 0.36568175657359714,
+    "val_pr_auc": 0.766736533298471,
+    "test_pr_auc": 0.7423077876680206,
+    "val_brier": 0.16969844424019348,
+    "test_brier": 0.1743735704220257
+  },
+  "selected_feature_model": {
+    "val_auc": 0.9864461913797777,
+    "test_auc": 0.9793982108972621,
+    "val_pr_auc": 0.9962583362054839,
+    "test_pr_auc": 0.994353734277236,
+    "val_brier": 0.05418712043823565,
+    "test_brier": 0.06147237999993025,
+    "best_C": 1.6378937069540647,
+    "n_train": 700,
+    "n_val": 150,
+    "n_test": 150
+  },
+  "constitution_enhancement_best": [
+    {
+      "model": "Constitution RandomForest",
+      "feature_set": "constitution_raw",
+      "n_features": 9,
+      "val_auc": 0.4418541610192464,
+      "test_auc": 0.43331526158850636,
+      "val_pr_auc": 0.765678130239261,
+      "test_pr_auc": 0.7596609777483314,
+      "val_brier": 0.1778361866666667,
+      "test_brier": 0.17695106666666668,
+      "is_degenerate": false
+    }
+  ]
+}

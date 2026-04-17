@@ -1,0 +1,4 @@
+﻿model,feature_set,n_features,best_C,best_l1_ratio,val_auc,test_auc,val_pr_auc,test_pr_auc,val_brier,test_brier,is_degenerate
+Constitution RandomForest,constitution_raw,9,,,0.4418541610192464,0.43331526158850636,0.765678130239261,0.7596609777483314,0.1778361866666667,0.17695106666666668,False
+Constitution L2 LogisticCV,constitution_raw,9,0.001,,0.4353483328815397,0.3637842233667661,0.7711731760157713,0.7420338085857081,0.2502991895217872,0.2507831404206438,False
+Constitution Interaction ElasticNetCV,constitution_pairwise_interaction,45,0.001,0.2,0.5,0.5,0.7933333333333333,0.7933333333333333,0.2513796840842023,0.2513796840842023,True
