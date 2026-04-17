@@ -1,0 +1,45 @@
+{
+  "probability_threshold": {
+    "youden_optimal_t_star": 0.9631763576840627,
+    "t_low": 0.8131763576840627,
+    "t_high": 0.95,
+    "basis": "在验证集上按Youden指数得到二分类最优阈值t_star，再采用t_star±0.15构建低/高风险概率阈值。"
+  },
+  "risk_index_threshold": {
+    "index_low": 0.38125522295665054,
+    "index_high": 0.501922087424488,
+    "formula": "0.45*(血脂异常计数/4)+0.25*(痰湿质/100)+0.20*(1-活动总分/100)+0.10*(模型风险分)",
+    "basis": "按训练集复合风险指数分位数（35%/75%）形成低/高风险分界，中间区间为中风险。"
+  },
+  "clinical_threshold": {
+    "tan_high": 56.0,
+    "tan_very_high": 60.0,
+    "activity_low": 42.0,
+    "activity_good": 55.0,
+    "lipid_abnormal_definition": {
+      "TC": ">6.2 mmol/L",
+      "TG": ">1.7 mmol/L",
+      "LDL-C": ">3.1 mmol/L",
+      "HDL-C": "<1.04 mmol/L"
+    },
+    "basis": "痰湿阈值结合训练集分位数与题目建议区间；活动阈值结合训练集分位数与量表分段。"
+  },
+  "tier_rules": {
+    "high_risk": [
+      "risk_index >= index_high",
+      "(abnormal_lipid_count >= 3) and (痰湿质 >= tan_high)",
+      "(abnormal_lipid_count >= 2) and (痰湿质 >= tan_very_high)",
+      "(痰湿质 >= tan_very_high) and (活动量表总分 <= activity_low)"
+    ],
+    "low_risk": [
+      "risk_index < index_low",
+      "risk_score < t_low",
+      "abnormal_lipid_count <= 1",
+      "痰湿质 < 40",
+      "活动量表总分 >= activity_good"
+    ],
+    "middle_risk": [
+      "其余样本归为中风险"
+    ]
+  }
+}
