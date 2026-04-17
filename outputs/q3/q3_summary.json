@@ -1,0 +1,41 @@
+{
+  "input_csv": "附件1_样例数据.csv",
+  "output_dir": "outputs/q3",
+  "target_constitution_label": 5,
+  "n_target_patients": 278,
+  "mean_tan_reduction_rate": 0.4636743302462374,
+  "mean_total_cost_6m": 1523.6546762589928,
+  "median_total_cost_6m": 1500.0,
+  "sample_1_2_3_plans": [
+    {
+      "sample_id": 1,
+      "regulation_level": 3,
+      "activity_intensity": 1,
+      "frequency_per_week": 10,
+      "tan_init": 64.0,
+      "tan_final_6m": 34.01222400000001,
+      "tan_reduction_rate": 0.46855899999999984,
+      "total_cost_6m": 1500.0
+    },
+    {
+      "sample_id": 2,
+      "regulation_level": 1,
+      "activity_intensity": 2,
+      "frequency_per_week": 10,
+      "tan_init": 58.0,
+      "tan_final_6m": 32.936416618378004,
+      "tan_reduction_rate": 0.4321307479589999,
+      "total_cost_6m": 1380.0
+    },
+    {
+      "sample_id": 3,
+      "regulation_level": 2,
+      "activity_intensity": 2,
+      "frequency_per_week": 10,
+      "tan_init": 59.0,
+      "tan_final_6m": 29.321896166699002,
+      "tan_reduction_rate": 0.5030187090389999,
+      "total_cost_6m": 1680.0
+    }
+  ]
+}

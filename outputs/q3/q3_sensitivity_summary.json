@@ -1,0 +1,69 @@
+{
+  "n_target_patients": 278,
+  "baseline": {
+    "mean_tan_reduction_rate": 0.4636743302462374,
+    "mean_total_cost_6m": 1523.6546762589928
+  },
+  "scenarios": [
+    {
+      "scenario": "baseline",
+      "budget_cap": 2000.0,
+      "drop_scale": 1.0,
+      "n_patients": 278,
+      "feasible_rate": 1.0,
+      "mean_tan_reduction_rate": 0.4636743302462374,
+      "mean_total_cost_6m": 1523.6546762589928,
+      "median_total_cost_6m": 1500.0
+    },
+    {
+      "scenario": "budget_1600",
+      "budget_cap": 1600.0,
+      "drop_scale": 1.0,
+      "n_patients": 278,
+      "feasible_rate": 1.0,
+      "mean_tan_reduction_rate": 0.4346443935760611,
+      "mean_total_cost_6m": 1386.9064748201438,
+      "median_total_cost_6m": 1500.0
+    },
+    {
+      "scenario": "budget_1800",
+      "budget_cap": 1800.0,
+      "drop_scale": 1.0,
+      "n_patients": 278,
+      "feasible_rate": 1.0,
+      "mean_tan_reduction_rate": 0.4498165673306366,
+      "mean_total_cost_6m": 1469.611510791367,
+      "median_total_cost_6m": 1500.0
+    },
+    {
+      "scenario": "budget_2200",
+      "budget_cap": 2200.0,
+      "drop_scale": 1.0,
+      "n_patients": 278,
+      "feasible_rate": 1.0,
+      "mean_tan_reduction_rate": 0.46484617212310786,
+      "mean_total_cost_6m": 1532.1151079136691,
+      "median_total_cost_6m": 1500.0
+    },
+    {
+      "scenario": "drop_x0.90",
+      "budget_cap": 2000.0,
+      "drop_scale": 0.9,
+      "n_patients": 278,
+      "feasible_rate": 1.0,
+      "mean_tan_reduction_rate": 0.42794577687963153,
+      "mean_total_cost_6m": 1523.6546762589928,
+      "median_total_cost_6m": 1500.0
+    },
+    {
+      "scenario": "drop_x1.10",
+      "budget_cap": 2000.0,
+      "drop_scale": 1.1,
+      "n_patients": 278,
+      "feasible_rate": 1.0,
+      "mean_tan_reduction_rate": 0.4974208580079273,
+      "mean_total_cost_6m": 1523.6546762589928,
+      "median_total_cost_6m": 1500.0
+    }
+  ]
+}
