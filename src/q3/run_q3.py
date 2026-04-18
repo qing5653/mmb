@@ -99,7 +99,78 @@ def simulate_6_month(tan_init: float, monthly_rate: float) -> Tuple[float, List[
     return float(current), scores
 
 
-def optimize_single_patient(sample_id: int, age_group: int, activity_total: float, tan_init: float) -> Dict[str, object]:
+def _select_best_candidate(candidates: List[Dict[str, object]], mode: str) -> Dict[str, object]:
+    """Select best candidate under the specified objective mode.
+
+    mode='upper': efficacy-first upper-bound solution (original objective)
+    mode='practical': add adherence penalty to avoid unrealistic high frequency
+    """
+    if mode == "upper":
+        return sorted(
+            candidates,
+            key=lambda x: (
+                x["tan_final_6m"],
+                x["total_cost_6m"],
+                x["frequency_per_week"],
+                x["activity_intensity"],
+            ),
+        )[0]
+
+    # Practical objective: keep efficacy primary but penalize very high frequency/intensity.
+    # The soft cap is 7 times/week; above this, adherence burden rises quickly.
+    if mode == "practical":
+        def practical_score(x: Dict[str, object]) -> float:
+            freq = float(x["frequency_per_week"])
+            inten = float(x["activity_intensity"])
+            # Prefer 5-7 times/week in practical mode unless efficacy gain is substantial.
+            freq_penalty = 1.20 * max(0.0, freq - 6.0) ** 2
+            inten_penalty = 0.50 * max(0.0, inten - 1.0)
+            return float(x["tan_final_6m"]) + freq_penalty + inten_penalty
+
+        return sorted(
+            candidates,
+            key=lambda x: (
+                practical_score(x),
+                x["tan_final_6m"],
+                x["total_cost_6m"],
+                x["frequency_per_week"],
+                x["activity_intensity"],
+            ),
+        )[0]
+
+    # Balanced objective: jointly optimize efficacy, cost and adherence burden.
+    # This mode is intended as the default recommendation for real-world execution.
+    if mode == "balanced":
+        tan_init = max(float(candidates[0]["tan_init"]), 1e-6)
+
+        def balanced_score(x: Dict[str, object]) -> float:
+            tan_final = float(x["tan_final_6m"])
+            cost = float(x["total_cost_6m"])
+            freq = float(x["frequency_per_week"])
+            inten = float(x["activity_intensity"])
+
+            efficacy_term = tan_final / tan_init
+            cost_term = cost / 2000.0
+            # Prefer middle frequency (about 6-7/week) instead of edge solutions.
+            freq_term = ((freq - 6.5) / 3.5) ** 2
+            # Prefer moderate intensity unless efficacy gain is significant.
+            inten_term = ((inten - 2.0) / 1.5) ** 2
+
+            return 0.62 * efficacy_term + 0.23 * cost_term + 0.10 * freq_term + 0.05 * inten_term
+
+        return sorted(
+            candidates,
+            key=lambda x: (
+                balanced_score(x),
+                x["tan_final_6m"],
+                x["total_cost_6m"],
+            ),
+        )[0]
+
+    raise ValueError(f"unknown mode: {mode}")
+
+
+def optimize_single_patient(sample_id: int, age_group: int, activity_total: float, tan_init: float, mode: str = "upper") -> Dict[str, object]:
     reg_level = regulation_level_by_tan(tan_init)
     intensity_max = min(max_intensity_by_age(age_group), max_intensity_by_activity(activity_total))
 
@@ -162,17 +233,8 @@ def optimize_single_patient(sample_id: int, age_group: int, activity_total: floa
             "note": "no-feasible-under-budget",
         }
 
-    # 目标：先最小化6个月末痰湿积分，再最小化总成本；若仍并列，优先更易执行方案。
-    # 并列打破顺序：频次更低 -> 强度更低。
-    best = sorted(
-        candidates,
-        key=lambda x: (
-            x["tan_final_6m"],
-            x["total_cost_6m"],
-            x["frequency_per_week"],
-            x["activity_intensity"],
-        ),
-    )[0]
+    best = _select_best_candidate(candidates, mode=mode)
+    best["objective_mode"] = mode
     return best
 
 
@@ -233,30 +295,81 @@ def main() -> None:
 
     target_df = df[df[col_map.constitution_label].astype(int) == int(args.target_constitution)].copy()
 
-    results = []
+    results_upper = []
+    results_practical = []
+    results_balanced = []
     for _, row in target_df.iterrows():
-        plan = optimize_single_patient(
+        plan_upper = optimize_single_patient(
             sample_id=int(row[col_map.sample_id]),
             age_group=int(row[col_map.age_group]),
             activity_total=float(row[col_map.activity_total]),
             tan_init=float(row[col_map.tan_score]),
+            mode="upper",
         )
-        plan["age_group"] = int(row[col_map.age_group])
-        plan["activity_total"] = float(row[col_map.activity_total])
-        results.append(plan)
+        plan_practical = optimize_single_patient(
+            sample_id=int(row[col_map.sample_id]),
+            age_group=int(row[col_map.age_group]),
+            activity_total=float(row[col_map.activity_total]),
+            tan_init=float(row[col_map.tan_score]),
+            mode="practical",
+        )
+        plan_balanced = optimize_single_patient(
+            sample_id=int(row[col_map.sample_id]),
+            age_group=int(row[col_map.age_group]),
+            activity_total=float(row[col_map.activity_total]),
+            tan_init=float(row[col_map.tan_score]),
+            mode="balanced",
+        )
 
-    opt_df = pd.DataFrame(results)
-    opt_df = opt_df.sort_values("sample_id").reset_index(drop=True)
+        for p in (plan_upper, plan_practical, plan_balanced):
+            p["age_group"] = int(row[col_map.age_group])
+            p["activity_total"] = float(row[col_map.activity_total])
 
-    # 导出主结果（轨迹转文本，便于CSV查看）
+        results_upper.append(plan_upper)
+        results_practical.append(plan_practical)
+        results_balanced.append(plan_balanced)
+
+    upper_df = pd.DataFrame(results_upper).sort_values("sample_id").reset_index(drop=True)
+    practical_df = pd.DataFrame(results_practical).sort_values("sample_id").reset_index(drop=True)
+    opt_df = pd.DataFrame(results_balanced).sort_values("sample_id").reset_index(drop=True)
+
+    # 导出上限解对照
+    upper_out = upper_df.copy()
+    upper_out["trajectory"] = upper_out["trajectory"].apply(lambda x: ";".join([f"{v:.3f}" for v in x]))
+    upper_out.to_csv(output_dir / "q3_patient_optimal_plans_upper.csv", index=False, encoding="utf-8-sig")
+
+    # 导出上限解（兼容旧文件名）
     out_df = opt_df.copy()
     out_df["trajectory"] = out_df["trajectory"].apply(lambda x: ";".join([f"{v:.3f}" for v in x]))
     out_df.to_csv(output_dir / "q3_patient_optimal_plans.csv", index=False, encoding="utf-8-sig")
+
+    # 导出可执行折中解（旧版practical）
+    practical_out = practical_df.copy()
+    practical_out["trajectory"] = practical_out["trajectory"].apply(lambda x: ";".join([f"{v:.3f}" for v in x]))
+    practical_out.to_csv(output_dir / "q3_patient_optimal_plans_practical.csv", index=False, encoding="utf-8-sig")
 
     sample_df = opt_df[opt_df["sample_id"].isin([1, 2, 3])].copy()
     sample_df_out = sample_df.copy()
     sample_df_out["trajectory"] = sample_df_out["trajectory"].apply(lambda x: ";".join([f"{v:.3f}" for v in x]))
     sample_df_out.to_csv(output_dir / "q3_sample_1_2_3_optimal_plan.csv", index=False, encoding="utf-8-sig")
+
+    sample_df_upper = upper_df[upper_df["sample_id"].isin([1, 2, 3])].copy()
+    sample_df_upper_out = sample_df_upper.copy()
+    sample_df_upper_out["trajectory"] = sample_df_upper_out["trajectory"].apply(
+        lambda x: ";".join([f"{v:.3f}" for v in x])
+    )
+    sample_df_upper_out.to_csv(
+        output_dir / "q3_sample_1_2_3_optimal_plan_upper.csv", index=False, encoding="utf-8-sig"
+    )
+
+    sample_df_practical = practical_df[practical_df["sample_id"].isin([1, 2, 3])].copy()
+    sample_df_practical_out = sample_df_practical.copy()
+    sample_df_practical_out["trajectory"] = sample_df_practical_out["trajectory"].apply(
+        lambda x: ";".join([f"{v:.3f}" for v in x])
+    )
+    sample_df_practical_out.to_csv(
+        output_dir / "q3_sample_1_2_3_optimal_plan_practical.csv", index=False, encoding="utf-8-sig"
+    )
 
     rules_df = build_matching_rules(opt_df)
     rules_df.to_csv(output_dir / "q3_matching_rules.csv", index=False, encoding="utf-8-sig")
@@ -266,10 +379,49 @@ def main() -> None:
         "output_dir": str(output_dir),
         "target_constitution_label": int(args.target_constitution),
         "n_target_patients": int(len(opt_df)),
+        "solution_upper": {
+            "mean_tan_reduction_rate": float(upper_df["tan_reduction_rate"].mean()) if not upper_df.empty else np.nan,
+            "mean_total_cost_6m": float(upper_df["total_cost_6m"].mean()) if not upper_df.empty else np.nan,
+            "median_total_cost_6m": float(upper_df["total_cost_6m"].median()) if not upper_df.empty else np.nan,
+            "freq_distribution": upper_df["frequency_per_week"].value_counts().sort_index().to_dict(),
+        },
+        "solution_practical": {
+            "mean_tan_reduction_rate": float(practical_df["tan_reduction_rate"].mean()) if not practical_df.empty else np.nan,
+            "mean_total_cost_6m": float(practical_df["total_cost_6m"].mean()) if not practical_df.empty else np.nan,
+            "median_total_cost_6m": float(practical_df["total_cost_6m"].median()) if not practical_df.empty else np.nan,
+            "freq_distribution": practical_df["frequency_per_week"].value_counts().sort_index().to_dict(),
+        },
+        "solution_balanced": {
+            "mean_tan_reduction_rate": float(opt_df["tan_reduction_rate"].mean()) if not opt_df.empty else np.nan,
+            "mean_total_cost_6m": float(opt_df["total_cost_6m"].mean()) if not opt_df.empty else np.nan,
+            "median_total_cost_6m": float(opt_df["total_cost_6m"].median()) if not opt_df.empty else np.nan,
+            "freq_distribution": opt_df["frequency_per_week"].value_counts().sort_index().to_dict(),
+        },
+        # backward-compatible fields now use balanced solution as default/main
         "mean_tan_reduction_rate": float(opt_df["tan_reduction_rate"].mean()) if not opt_df.empty else np.nan,
         "mean_total_cost_6m": float(opt_df["total_cost_6m"].mean()) if not opt_df.empty else np.nan,
         "median_total_cost_6m": float(opt_df["total_cost_6m"].median()) if not opt_df.empty else np.nan,
         "sample_1_2_3_plans": sample_df[[
+            "sample_id",
+            "regulation_level",
+            "activity_intensity",
+            "frequency_per_week",
+            "tan_init",
+            "tan_final_6m",
+            "tan_reduction_rate",
+            "total_cost_6m",
+        ]].to_dict(orient="records"),
+        "sample_1_2_3_plans_upper": sample_df_upper[[
+            "sample_id",
+            "regulation_level",
+            "activity_intensity",
+            "frequency_per_week",
+            "tan_init",
+            "tan_final_6m",
+            "tan_reduction_rate",
+            "total_cost_6m",
+        ]].to_dict(orient="records"),
+        "sample_1_2_3_plans_practical": sample_df_practical[[
             "sample_id",
             "regulation_level",
             "activity_intensity",

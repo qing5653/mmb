@@ -98,6 +98,7 @@ def optimize_patient_scenario(
     tan_init: float,
     budget_cap: float,
     drop_scale: float,
+    objective_mode: str = "balanced",
 ) -> Dict[str, float]:
     reg_level = regulation_level_by_tan(tan_init)
     intensity_max = min(max_intensity_by_age(age_group), max_intensity_by_activity(activity_total))
@@ -136,7 +137,26 @@ def optimize_patient_scenario(
             "is_feasible": 0.0,
         }
 
-    best = sorted(candidates, key=lambda x: (x["tan_final_6m"], x["total_cost_6m"]))[0]
+    if objective_mode == "upper":
+        best = sorted(candidates, key=lambda x: (x["tan_final_6m"], x["total_cost_6m"]))[0]
+    else:
+        tan_init_safe = max(float(tan_init), 1e-6)
+
+        def balanced_score(x: Dict[str, float]) -> float:
+            efficacy_term = float(x["tan_final_6m"]) / tan_init_safe
+            cost_term = float(x["total_cost_6m"]) / max(float(budget_cap), 1.0)
+            freq_term = ((float(x["frequency_per_week"]) - 6.5) / 3.5) ** 2
+            inten_term = ((float(x["activity_intensity"]) - 2.0) / 1.5) ** 2
+            return 0.62 * efficacy_term + 0.23 * cost_term + 0.10 * freq_term + 0.05 * inten_term
+
+        best = sorted(
+            candidates,
+            key=lambda x: (
+                balanced_score(x),
+                x["tan_final_6m"],
+                x["total_cost_6m"],
+            ),
+        )[0]
     best["is_feasible"] = 1.0
     return best
 
@@ -147,6 +167,7 @@ def evaluate_scenario(
     budget_cap: float,
     drop_scale: float,
     scenario_name: str,
+    objective_mode: str,
 ) -> tuple[pd.DataFrame, Dict[str, float]]:
     rows = []
     for _, r in target_df.iterrows():
@@ -157,6 +178,7 @@ def evaluate_scenario(
             tan_init=tan_init,
             budget_cap=budget_cap,
             drop_scale=drop_scale,
+            objective_mode=objective_mode,
         )
         tan_final = float(out["tan_final_6m"])
         reduction_rate = (tan_init - tan_final) / tan_init if tan_init > 0 else 0.0
@@ -191,6 +213,13 @@ def main() -> None:
     parser.add_argument("--input-csv", type=str, default="附件1_样例数据.csv")
     parser.add_argument("--output-dir", type=str, default="outputs/q3")
     parser.add_argument("--target-constitution", type=int, default=5)
+    parser.add_argument(
+        "--objective-mode",
+        type=str,
+        default="balanced",
+        choices=["balanced", "upper"],
+        help="敏感性分析采用的目标模式：balanced(默认) 或 upper(疗效上界)",
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.output_dir)
@@ -227,6 +256,7 @@ def main() -> None:
             budget_cap=budget_cap,
             drop_scale=drop_scale,
             scenario_name=name,
+            objective_mode=args.objective_mode,
         )
         all_rows.append(res)
         summaries.append(summary)
@@ -243,6 +273,7 @@ def main() -> None:
     baseline = summary_df[summary_df["scenario"] == "baseline"].iloc[0]
     summary_json = {
         "n_target_patients": int(len(target_df)),
+        "objective_mode": args.objective_mode,
         "baseline": {
             "mean_tan_reduction_rate": float(baseline["mean_tan_reduction_rate"]),
             "mean_total_cost_6m": float(baseline["mean_total_cost_6m"]),

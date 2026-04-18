@@ -1,8 +1,9 @@
 {
   "n_target_patients": 278,
+  "objective_mode": "balanced",
   "baseline": {
-    "mean_tan_reduction_rate": 0.4636743302462374,
-    "mean_total_cost_6m": 1523.6546762589928
+    "mean_tan_reduction_rate": 0.3602616334167482,
+    "mean_total_cost_6m": 1221.841726618705
   },
   "scenarios": [
     {
@@ -11,9 +12,9 @@
       "drop_scale": 1.0,
       "n_patients": 278,
       "feasible_rate": 1.0,
-      "mean_tan_reduction_rate": 0.4636743302462374,
-      "mean_total_cost_6m": 1523.6546762589928,
-      "median_total_cost_6m": 1500.0
+      "mean_tan_reduction_rate": 0.3602616334167482,
+      "mean_total_cost_6m": 1221.841726618705,
+      "median_total_cost_6m": 1320.0
     },
     {
       "scenario": "budget_1600",
@@ -21,9 +22,9 @@
       "drop_scale": 1.0,
       "n_patients": 278,
       "feasible_rate": 1.0,
-      "mean_tan_reduction_rate": 0.4346443935760611,
-      "mean_total_cost_6m": 1386.9064748201438,
-      "median_total_cost_6m": 1500.0
+      "mean_tan_reduction_rate": 0.34796893062609363,
+      "mean_total_cost_6m": 1188.6906474820144,
+      "median_total_cost_6m": 1284.0
     },
     {
       "scenario": "budget_1800",
@@ -31,9 +32,9 @@
       "drop_scale": 1.0,
       "n_patients": 278,
       "feasible_rate": 1.0,
-      "mean_tan_reduction_rate": 0.4498165673306366,
-      "mean_total_cost_6m": 1469.611510791367,
-      "median_total_cost_6m": 1500.0
+      "mean_tan_reduction_rate": 0.35543803266327706,
+      "mean_total_cost_6m": 1213.294964028777,
+      "median_total_cost_6m": 1284.0
     },
     {
       "scenario": "budget_2200",
@@ -41,9 +42,9 @@
       "drop_scale": 1.0,
       "n_patients": 278,
       "feasible_rate": 1.0,
-      "mean_tan_reduction_rate": 0.46484617212310786,
-      "mean_total_cost_6m": 1532.1151079136691,
-      "median_total_cost_6m": 1500.0
+      "mean_tan_reduction_rate": 0.363333589183313,
+      "mean_total_cost_6m": 1234.5323741007194,
+      "median_total_cost_6m": 1320.0
     },
     {
       "scenario": "drop_x0.90",
@@ -51,9 +52,9 @@
       "drop_scale": 0.9,
       "n_patients": 278,
       "feasible_rate": 1.0,
-      "mean_tan_reduction_rate": 0.42794577687963153,
-      "mean_total_cost_6m": 1523.6546762589928,
-      "median_total_cost_6m": 1500.0
+      "mean_tan_reduction_rate": 0.3258730549583969,
+      "mean_total_cost_6m": 1213.294964028777,
+      "median_total_cost_6m": 1284.0
     },
     {
       "scenario": "drop_x1.10",
@@ -61,9 +62,9 @@
       "drop_scale": 1.1,
       "n_patients": 278,
       "feasible_rate": 1.0,
-      "mean_tan_reduction_rate": 0.4974208580079273,
-      "mean_total_cost_6m": 1523.6546762589928,
-      "median_total_cost_6m": 1500.0
+      "mean_tan_reduction_rate": 0.3889273983372619,
+      "mean_total_cost_6m": 1221.841726618705,
+      "median_total_cost_6m": 1320.0
     }
   ]
 }

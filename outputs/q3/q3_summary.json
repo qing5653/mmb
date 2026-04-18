@@ -3,10 +3,69 @@
   "output_dir": "outputs/q3",
   "target_constitution_label": 5,
   "n_target_patients": 278,
-  "mean_tan_reduction_rate": 0.4636743302462374,
-  "mean_total_cost_6m": 1523.6546762589928,
-  "median_total_cost_6m": 1500.0,
+  "solution_upper": {
+    "mean_tan_reduction_rate": 0.4636743302462374,
+    "mean_total_cost_6m": 1523.6546762589928,
+    "median_total_cost_6m": 1500.0,
+    "freq_distribution": {
+      "9": 7,
+      "10": 271
+    }
+  },
+  "solution_practical": {
+    "mean_tan_reduction_rate": 0.3507777228485541,
+    "mean_total_cost_6m": 1221.7553956834533,
+    "median_total_cost_6m": 1284.0,
+    "freq_distribution": {
+      "6": 5,
+      "7": 273
+    }
+  },
+  "solution_balanced": {
+    "mean_tan_reduction_rate": 0.3602616334167482,
+    "mean_total_cost_6m": 1221.841726618705,
+    "median_total_cost_6m": 1320.0,
+    "freq_distribution": {
+      "7": 186,
+      "8": 92
+    }
+  },
+  "mean_tan_reduction_rate": 0.3602616334167482,
+  "mean_total_cost_6m": 1221.841726618705,
+  "median_total_cost_6m": 1320.0,
   "sample_1_2_3_plans": [
+    {
+      "sample_id": 1,
+      "regulation_level": 3,
+      "activity_intensity": 1,
+      "frequency_per_week": 8,
+      "tan_init": 64.0,
+      "tan_final_6m": 38.80672008601601,
+      "tan_reduction_rate": 0.3936449986559999,
+      "total_cost_6m": 1356.0
+    },
+    {
+      "sample_id": 2,
+      "regulation_level": 1,
+      "activity_intensity": 2,
+      "frequency_per_week": 7,
+      "tan_init": 58.0,
+      "tan_final_6m": 40.01244730124799,
+      "tan_reduction_rate": 0.3101302189440002,
+      "total_cost_6m": 1020.0
+    },
+    {
+      "sample_id": 3,
+      "regulation_level": 2,
+      "activity_intensity": 2,
+      "frequency_per_week": 7,
+      "tan_init": 59.0,
+      "tan_final_6m": 35.774945079296,
+      "tan_reduction_rate": 0.39364499865599994,
+      "total_cost_6m": 1320.0
+    }
+  ],
+  "sample_1_2_3_plans_upper": [
     {
       "sample_id": 1,
       "regulation_level": 3,
@@ -36,6 +95,38 @@
       "tan_final_6m": 29.321896166699002,
       "tan_reduction_rate": 0.5030187090389999,
       "total_cost_6m": 1680.0
+    }
+  ],
+  "sample_1_2_3_plans_practical": [
+    {
+      "sample_id": 1,
+      "regulation_level": 3,
+      "activity_intensity": 1,
+      "frequency_per_week": 7,
+      "tan_init": 64.0,
+      "tan_final_6m": 41.40737174073599,
+      "tan_reduction_rate": 0.35300981655100017,
+      "total_cost_6m": 1284.0
+    },
+    {
+      "sample_id": 2,
+      "regulation_level": 1,
+      "activity_intensity": 2,
+      "frequency_per_week": 7,
+      "tan_init": 58.0,
+      "tan_final_6m": 40.01244730124799,
+      "tan_reduction_rate": 0.3101302189440002,
+      "total_cost_6m": 1020.0
+    },
+    {
+      "sample_id": 3,
+      "regulation_level": 2,
+      "activity_intensity": 3,
+      "frequency_per_week": 7,
+      "tan_init": 59.0,
+      "tan_final_6m": 29.321896166699002,
+      "tan_reduction_rate": 0.5030187090389999,
+      "total_cost_6m": 1824.0
     }
   ]
 }
