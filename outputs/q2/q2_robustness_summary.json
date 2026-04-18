@@ -19,18 +19,20 @@
     "test_pr_auc_min": 0.9999999999999999,
     "test_pr_auc_max": 1.0,
     "val_brier_mean": 0.0021128691933125264,
-    "val_brier_std": 0.0008121381128192351,
+    "val_brier_std": 0.000812138112819235,
     "val_brier_min": 0.0007261154455627177,
     "val_brier_max": 0.003025231547134351,
     "test_brier_mean": 0.0016878911159340637,
     "test_brier_std": 0.0003808020877775946,
-    "test_brier_min": 0.0011155357661312532,
+    "test_brier_min": 0.0011155357661312535,
     "test_brier_max": 0.0023536812199466757
   },
   "ablation": {
     "full_model_test_auc": 1.0,
     "remove_core_lipids_test_auc": 1.0,
+    "strict_no_homology_test_auc": 0.7972350230414745,
     "test_auc_drop_without_core_lipids": 0.0,
+    "test_auc_drop_strict_no_homology": 0.20276497695852547,
     "table_file": "q2_ablation_results.csv"
   },
   "calibration": {

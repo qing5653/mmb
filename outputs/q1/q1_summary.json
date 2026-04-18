@@ -7,7 +7,7 @@
   "train_size": 700,
   "val_size": 150,
   "test_size": 150,
-  "candidate_feature_count": 10,
+  "candidate_feature_count": 8,
   "selected_feature_count": 5,
   "selected_features": [
     "TG（甘油三酯）",
@@ -52,6 +52,8 @@
       "model": "Constitution RandomForest",
       "feature_set": "constitution_raw",
       "n_features": 9,
+      "best_C": NaN,
+      "best_l1_ratio": NaN,
       "val_auc": 0.4418541610192464,
       "test_auc": 0.43331526158850636,
       "val_pr_auc": 0.765678130239261,

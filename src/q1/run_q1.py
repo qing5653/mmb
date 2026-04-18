@@ -71,6 +71,16 @@ def build_column_map(df: pd.DataFrame) -> ColumnMap:
     ]
     tan_score = find_column(df, r"^痰湿质$")
 
+    # ADL、IADL与活动总分存在构成关系，候选特征中强制互斥：
+    # 优先使用活动总分；若总分字段缺失则退回ADL与IADL。
+    adl_col = find_column(df, r"ADL总分")
+    iadl_col = find_column(df, r"IADL总分")
+    try:
+        activity_total_col = find_column(df, r"活动量表总分")
+        activity_features = [activity_total_col]
+    except KeyError:
+        activity_features = [adl_col, iadl_col]
+
     candidate_features = [
         find_column(df, r"HDL-C"),
         find_column(df, r"LDL-C"),
@@ -79,10 +89,7 @@ def build_column_map(df: pd.DataFrame) -> ColumnMap:
         find_column(df, r"空腹血糖"),
         find_column(df, r"血尿酸"),
         find_column(df, r"BMI"),
-        find_column(df, r"ADL总分"),
-        find_column(df, r"IADL总分"),
-        find_column(df, r"活动量表总分"),
-    ]
+    ] + activity_features
 
     return ColumnMap(
         sample_id=sample_id,

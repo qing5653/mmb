@@ -311,6 +311,9 @@ def main() -> None:
     ablations = {
         "full_model": full_features,
         "remove_core_lipids": [f for f in full_features if f not in col_map.core_lipids],
+        "strict_no_homology": [
+            f for f in full_features if (f not in col_map.core_lipids and f != "abnormal_lipid_count")
+        ],
         "remove_constitution": [f for f in full_features if f not in col_map.constitution_scores],
         "remove_activity": [f for f in full_features if "活动量表总分" not in f],
         "remove_lipid_count": [f for f in full_features if f != "abnormal_lipid_count"],
@@ -332,6 +335,9 @@ def main() -> None:
 
     full_test_auc = float(ablation_df.loc[ablation_df["experiment"] == "full_model", "test_auc"].iloc[0])
     remove_core_auc = float(ablation_df.loc[ablation_df["experiment"] == "remove_core_lipids", "test_auc"].iloc[0])
+    strict_no_homology_auc = float(
+        ablation_df.loc[ablation_df["experiment"] == "strict_no_homology", "test_auc"].iloc[0]
+    )
 
     # 3) 概率校准（基线模型）
     base_model = fit_model(train_df, full_features, col_map.label, base_seed)
@@ -382,7 +388,9 @@ def main() -> None:
         "ablation": {
             "full_model_test_auc": full_test_auc,
             "remove_core_lipids_test_auc": remove_core_auc,
+            "strict_no_homology_test_auc": strict_no_homology_auc,
             "test_auc_drop_without_core_lipids": float(full_test_auc - remove_core_auc),
+            "test_auc_drop_strict_no_homology": float(full_test_auc - strict_no_homology_auc),
             "table_file": "q2_ablation_results.csv",
         },
         "calibration": {
@@ -408,6 +416,7 @@ def main() -> None:
     print(f"- Seeds: {seeds[0]}..{seeds[-1]} (count={len(seeds)})")
     print(f"- Full model test AUC: {full_test_auc:.4f}")
     print(f"- Remove core lipids test AUC: {remove_core_auc:.4f}")
+    print(f"- Strict no-homology test AUC: {strict_no_homology_auc:.4f}")
     print(f"- Drop: {full_test_auc - remove_core_auc:.4f}")
     print(f"- Test ECE: {cal_test_stats['ece']:.6f}")
     print(f"- 输出目录: {output_dir}")
