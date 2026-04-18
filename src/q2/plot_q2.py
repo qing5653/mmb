@@ -9,40 +9,41 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from matplotlib import font_manager
 
 
 FEATURE_MAP = {
-    "痰湿质": "Tan-score",
-    "活动量表总分（ADL总分+IADL总分）": "Activity total",
+    "痰湿质": "痰湿积分",
+    "活动量表总分（ADL总分+IADL总分）": "活动总分",
     "TG（甘油三酯）": "TG",
     "TC（总胆固醇）": "TC",
     "LDL-C（低密度脂蛋白）": "LDL-C",
     "HDL-C（高密度脂蛋白）": "HDL-C",
-    "空腹血糖": "Fasting glucose",
-    "血尿酸": "Uric acid",
-    "平和质": "Balanced",
-    "气虚质": "Qi-deficient",
-    "阳虚质": "Yang-deficient",
-    "阴虚质": "Yin-deficient",
-    "湿热质": "Damp-heat",
-    "血瘀质": "Blood-stasis",
-    "气郁质": "Qi-depressed",
-    "特禀质": "Special diathesis",
+    "空腹血糖": "空腹血糖",
+    "血尿酸": "血尿酸",
+    "平和质": "平和质",
+    "气虚质": "气虚质",
+    "阳虚质": "阳虚质",
+    "阴虚质": "阴虚质",
+    "湿热质": "湿热质",
+    "血瘀质": "血瘀质",
+    "气郁质": "气郁质",
+    "特禀质": "特禀质",
 }
 
-RISK_MAP = {"低风险": "Low", "中风险": "Medium", "高风险": "High"}
+RISK_MAP = {"低风险": "低风险", "中风险": "中风险", "高风险": "高风险"}
 COMBO_TOKEN_MAP = {
-    "痰湿高分": "High tan-score",
-    "活动能力低": "Low activity",
-    "TG异常": "TG abnormal",
-    "TC异常": "TC abnormal",
-    "LDL异常": "LDL abnormal",
-    "HDL偏低": "Low HDL",
-    "BMI偏高": "High BMI",
-    "血尿酸偏高": "High uric acid",
-    "年龄偏高": "Older age",
-    "吸烟史": "Smoking",
-    "饮酒史": "Drinking",
+    "痰湿高分": "痰湿高分",
+    "活动能力低": "活动能力低",
+    "TG异常": "TG异常",
+    "TC异常": "TC异常",
+    "LDL异常": "LDL异常",
+    "HDL偏低": "HDL偏低",
+    "BMI偏高": "BMI偏高",
+    "血尿酸偏高": "血尿酸偏高",
+    "年龄偏高": "年龄偏高",
+    "吸烟史": "吸烟史",
+    "饮酒史": "饮酒史",
 }
 
 
@@ -59,7 +60,17 @@ def _map_combo(s: str) -> str:
 
 def _setup() -> None:
     sns.set_theme(style="whitegrid", context="talk")
-    plt.rcParams["font.sans-serif"] = ["DejaVu Sans", "Arial", "Liberation Sans"]
+    preferred = [
+        "AR PL UMing CN",
+        "Droid Sans Fallback",
+        "Noto Sans CJK JP",
+        "Noto Serif CJK JP",
+        "AR PL UMing CN",
+    ]
+    installed = {f.name for f in font_manager.fontManager.ttflist}
+    chosen = next((f for f in preferred if f in installed), "DejaVu Sans")
+    plt.rcParams["font.family"] = [chosen]
+    plt.rcParams["font.sans-serif"] = [chosen, "DejaVu Sans"]
     plt.rcParams["axes.unicode_minus"] = False
     plt.rcParams["figure.facecolor"] = "white"
     plt.rcParams["axes.facecolor"] = "#fcfcfd"
@@ -75,15 +86,15 @@ def plot_risk_distribution(pred: pd.DataFrame, out: Path) -> None:
     order = ["低风险", "中风险", "高风险"]
     pred = pred.copy()
     pred["risk_level"] = pred["risk_level"].map(RISK_MAP)
-    order = ["Low", "Medium", "High"]
+    order = ["低风险", "中风险", "高风险"]
     cnt = pred["risk_level"].value_counts().reindex(order).fillna(0).reset_index()
     cnt.columns = ["risk_level", "count"]
 
     plt.figure(figsize=(8.5, 5.8))
     ax = sns.barplot(data=cnt, x="risk_level", y="count", hue="risk_level", palette=["#2a9d8f", "#e9c46a", "#e76f51"], legend=False)
-    plt.title("Q2 Risk Tier Distribution", weight="bold")
-    plt.xlabel("Risk Tier")
-    plt.ylabel("Sample Count")
+    plt.title("问题二风险层样本分布", weight="bold")
+    plt.xlabel("风险层级")
+    plt.ylabel("样本数")
     for p in ax.patches:
         h = p.get_height()
         ax.text(p.get_x() + p.get_width() / 2, h + max(cnt["count"]) * 0.01, f"{int(h)}", ha="center", va="bottom", fontsize=11)
@@ -93,7 +104,7 @@ def plot_risk_distribution(pred: pd.DataFrame, out: Path) -> None:
 def plot_score_box(pred: pd.DataFrame, thresholds: dict, out: Path) -> None:
     pred = pred.copy()
     pred["risk_level"] = pred["risk_level"].map(RISK_MAP)
-    order = ["Low", "Medium", "High"]
+    order = ["低风险", "中风险", "高风险"]
     t_low = thresholds["probability_threshold"]["t_low"]
     t_high = thresholds["probability_threshold"]["t_high"]
 
@@ -111,9 +122,9 @@ def plot_score_box(pred: pd.DataFrame, thresholds: dict, out: Path) -> None:
     )
     plt.axhline(t_low, color="#2a9d8f", linestyle="--", linewidth=1.3, label=f"t_low={t_low:.3f}")
     plt.axhline(t_high, color="#e76f51", linestyle="--", linewidth=1.3, label=f"t_high={t_high:.3f}")
-    plt.title("Q2 Risk Score by Tier", weight="bold")
-    plt.xlabel("Risk Tier")
-    plt.ylabel("Model Risk Score")
+    plt.title("问题二各风险层风险分值分布", weight="bold")
+    plt.xlabel("风险层级")
+    plt.ylabel("模型风险分值")
     plt.legend(frameon=False, loc="upper left")
     _save(out / "q2_risk_score_boxplot.png")
 
@@ -124,9 +135,9 @@ def plot_feature_importance(imp: pd.DataFrame, out: Path) -> None:
     top = imp.head(12).copy().sort_values("importance", ascending=True)
     plt.figure(figsize=(10, 6.8))
     ax = sns.barplot(data=top, x="importance", y="feature", hue="feature", palette="viridis", legend=False)
-    plt.title("Q2 Model Top Feature Importance", weight="bold")
-    plt.xlabel("Importance")
-    plt.ylabel("Feature")
+    plt.title("问题二模型特征重要性（前12）", weight="bold")
+    plt.xlabel("重要性")
+    plt.ylabel("特征")
     for p in ax.patches:
         w = p.get_width()
         y = p.get_y() + p.get_height() / 2
@@ -142,9 +153,9 @@ def plot_core_combos(combo: pd.DataFrame, out: Path) -> None:
     top["combo"] = top["combo"].map(_map_combo)
     plt.figure(figsize=(11, 7.2))
     ax = sns.barplot(data=top, x="support_high", y="combo", hue="combo", palette="magma", legend=False)
-    plt.title("Q2 Core Feature Combinations in High-risk Group", weight="bold")
-    plt.xlabel("Support in High-risk Group")
-    plt.ylabel("Feature Combination")
+    plt.title("问题二高风险核心特征组合", weight="bold")
+    plt.xlabel("高风险组支持度")
+    plt.ylabel("特征组合")
     for p in ax.patches:
         w = p.get_width()
         y = p.get_y() + p.get_height() / 2

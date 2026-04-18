@@ -9,11 +9,22 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from matplotlib import font_manager
 
 
 def _setup() -> None:
     sns.set_theme(style="whitegrid", context="talk")
-    plt.rcParams["font.sans-serif"] = ["DejaVu Sans", "Arial", "Liberation Sans"]
+    preferred = [
+        "AR PL UMing CN",
+        "Droid Sans Fallback",
+        "Noto Sans CJK JP",
+        "Noto Serif CJK JP",
+        "AR PL UMing CN",
+    ]
+    installed = {f.name for f in font_manager.fontManager.ttflist}
+    chosen = next((f for f in preferred if f in installed), "DejaVu Sans")
+    plt.rcParams["font.family"] = [chosen]
+    plt.rcParams["font.sans-serif"] = [chosen, "DejaVu Sans"]
     plt.rcParams["axes.unicode_minus"] = False
 
 
@@ -34,9 +45,9 @@ def plot_plan_distribution(df: pd.DataFrame, out: Path) -> None:
         hue="activity_intensity",
         palette="viridis",
     )
-    plt.title("Q3 Plan Distribution", weight="bold")
-    plt.xlabel("Regulation Level")
-    plt.ylabel("Patient Count")
+    plt.title("问题三最优方案分布", weight="bold")
+    plt.xlabel("调理等级")
+    plt.ylabel("患者数")
     for p in ax.patches:
         h = p.get_height()
         if h > 0:
@@ -55,9 +66,9 @@ def plot_cost_reduction(df: pd.DataFrame, out: Path) -> None:
         palette="magma",
         alpha=0.8,
     )
-    plt.title("Q3 Cost vs Reduction Rate", weight="bold")
-    plt.xlabel("Total Cost (6 months)")
-    plt.ylabel("Tan-score Reduction Rate")
+    plt.title("问题三成本与降幅关系", weight="bold")
+    plt.xlabel("6个月总成本")
+    plt.ylabel("痰湿降幅率")
     _save(out / "q3_cost_vs_reduction.png")
 
 
@@ -74,9 +85,9 @@ def plot_sample_trajectory(sample_df: pd.DataFrame, out: Path) -> None:
     traj = pd.DataFrame(rows)
     plt.figure(figsize=(8.8, 6.0))
     sns.lineplot(data=traj, x="month", y="tan_score", hue="sample_id", marker="o", linewidth=2.2)
-    plt.title("Q3 Sample 1/2/3 Tan-score Trajectory", weight="bold")
-    plt.xlabel("Month")
-    plt.ylabel("Predicted Tan-score")
+    plt.title("问题三样本1/2/3痰湿积分轨迹", weight="bold")
+    plt.xlabel("月份")
+    plt.ylabel("预测痰湿积分")
     _save(out / "q3_sample_1_2_3_trajectory.png")
 
 

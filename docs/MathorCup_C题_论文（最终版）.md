@@ -8,6 +8,20 @@
 
 ---
 
+## 目录
+
+1. 一、问题重述与背景
+2. 二、问题分析
+3. 三、模型假设与符号约定
+4. 四、符号说明
+5. 五、模型的建立与求解
+6. 六、模型灵敏度分析
+7. 七、模型结果与政策建议
+8. 八、参考文献
+9. 九、附录
+
+---
+
 ## 一、问题重述与背景
 
 
@@ -113,14 +127,14 @@
 
 ### 5.1 问题一模型的建立与求解
 
-#### 1.5.1 数据切分与防泄漏策略
+#### 5.1.1.1 数据切分与防泄漏策略
 
 1. 按标签分层切分：训练集70%，验证集15%，测试集15%。
 2. 相关性、L1筛选、随机森林重要性均在训练集执行。
 3. 验证集仅用于AUC评价与模型对比。
 4. 测试集在问题1阶段保留，不参与调参。
 
-#### 1.5.2 相关性筛选
+#### 5.1.1.2 相关性筛选
 
 对候选指标 $X_j$ 与痰湿积分 $T$ 计算 Pearson：
 
@@ -134,7 +148,7 @@ $$
 \rho_{j,Y}=1-\frac{6\sum d_i^2}{n(n^2-1)}
 $$
 
-#### 1.5.3 L1-Logistic 稀疏筛选
+#### 5.1.1.3 L1-Logistic 稀疏筛选
 
 采用带L1正则的Logistic回归交叉验证选择惩罚强度：
 
@@ -144,7 +158,7 @@ $$
 
 其中 $p_i=\sigma(\beta_0+x_i^T\beta)$。
 
-#### 1.5.4 随机森林重要性
+#### 5.1.1.4 随机森林重要性
 
 通过集成树模型得到特征重要性：
 
@@ -152,7 +166,7 @@ $$
 Importance(X_j)=\frac{1}{B}\sum_{b=1}^{B}\sum_{t\in T_b}\Delta Gini_t\cdot\mathbf{1}(X_j\in t)
 $$
 
-#### 1.5.5 投票机制
+#### 5.1.1.5 投票机制
 
 设三种方法选择结果分别为0/1，投票数为：
 
@@ -162,7 +176,7 @@ $$
 
 若 $V_j\ge2$，则 $X_j$ 入选最终关键指标。
 
-#### 1.5.6 九体质Logistic与OR
+#### 5.1.1.6 九体质Logistic与OR
 
 构建模型：
 
@@ -178,7 +192,7 @@ $$
 
 并计算Wald检验、VIF与Hosmer-Lemeshow检验。
 
-#### 1.5.7 模型评判标准前置（正文口径）
+#### 5.1.1.7 模型评判标准前置（正文口径）
 
 为保证后文结论可复核，先定义“任务适配型”判定标准（不是单一AUC导向）：
 
@@ -194,7 +208,7 @@ $$
 
 说明：解释型模型证据偏弱不代表流程错误，也不代表问题1未完成；它承担的是“机制趋势解释”而不是“高精度分类”。
 
-#### 1.5.8 本轮优化动作与结论
+#### 5.1.1.8 本轮优化动作与结论
 
 针对“评价标准里较多不通过”的疑问，已完成以下实质优化：
 
@@ -208,9 +222,9 @@ $$
 
 ---
 
-#### 5.1.1 结果与可视化
+#### 5.1.2 结果与可视化
 
-#### 1.6.1 关键指标筛选结果
+#### 5.1.2.1 关键指标筛选结果
 
 最终入选5项关键指标：
 
@@ -227,25 +241,25 @@ $$
 3. 随机森林重要性（附录A）：[outputs/q1/figures/q1_rf_importance.png](../outputs/q1/figures/q1_rf_importance.png)
 4. 关键指标模型系数（附录A）：[outputs/q1/figures/q1_selected_model_coef.png](../outputs/q1/figures/q1_selected_model_coef.png)
 
-![Q1 Feature Voting Results](../outputs/q1/figures/q1_feature_votes.png)
+![问题一关键指标投票结果](../outputs/q1/figures/q1_feature_votes.png)
 
 图5-1 关键指标三方法投票结果（颜色区分是否最终入选，条末标注投票数）。
 
 图5-1解读口径：每一行对应一个候选指标；横轴为三种筛选方法累计投票数（0到3）；颜色区分最终是否入选。该图用于展示“多方法一致性”，回答“为什么是这5个关键指标”。
 
-#### 1.6.2 九体质贡献度结果（OR）
+#### 5.1.2.2 九体质贡献度结果（OR）
 
 1. 当前训练-验证设置下，九体质变量中未出现 $p<0.05$ 的显著项。
 2. OR方向上，气郁质与气虚质呈风险上升趋势，但置信区间跨1。
 3. 体质OR森林图见：[outputs/q1/figures/q1_or_forest.png](../outputs/q1/figures/q1_or_forest.png)
 
-![OR and 95% CI of Nine Constitutions](../outputs/q1/figures/q1_or_forest.png)
+![九体质OR及95%置信区间](../outputs/q1/figures/q1_or_forest.png)
 
 图5-2 九体质OR森林图（虚线为OR=1，红色区间表示显著项；本次实验无显著体质变量）。
 
 图5-2解读口径：纵轴每一行是一个体质变量；点为OR估计值；线段为95%CI。若CI跨1，则该变量在当前样本下未达到显著性。该图用于回答“体质影响方向是否稳定”。
 
-#### 1.6.3 模型评估
+#### 5.1.2.3 模型评估
 
 1. 九体质Logistic验证集AUC：0.4313。
 2. 九体质Logistic测试集AUC：0.3657。
@@ -254,7 +268,7 @@ $$
 5. 关键指标预警模型测试集AUC：0.9794。
 6. AUC对比图见：[outputs/q1/figures/q1_auc_compare.png](../outputs/q1/figures/q1_auc_compare.png)
 
-![Q1 Validation AUC Comparison](../outputs/q1/figures/q1_auc_compare.png)
+![问题一验证集AUC对比](../outputs/q1/figures/q1_auc_compare.png)
 
 图5-3 验证集AUC对比图（关键指标预警模型显著优于九体质模型）。
 
@@ -267,9 +281,9 @@ $$
 3. [outputs/q1/feature_selection_details.csv](../outputs/q1/feature_selection_details.csv)
 4. [outputs/q1/model_performance_table.csv](../outputs/q1/model_performance_table.csv)
 
-#### 1.6.4 表格结果解读（每行每列含义）
+#### 5.1.2.4 表格结果解读（每行每列含义）
 
-#### 1.6.4.1 `feature_selection_details.csv` 字段解释
+#### 5.1.2.4.1 `feature_selection_details.csv` 字段解释
 
 1. 每一行代表一个候选指标。
 2. `pearson_r_tan`、`pearson_p_tan`：该指标与痰湿积分的Pearson相关系数及其显著性。
@@ -280,7 +294,7 @@ $$
 7. `votes`：三种方法累计票数。
 8. `final_selected`：是否进入最终关键指标清单。
 
-#### 1.6.4.2 `OR_values_table.csv` 字段解释
+#### 5.1.2.4.2 `OR_values_table.csv` 字段解释
 
 1. 每一行代表一个回归项（含常数项`const`与9个体质变量）。
 2. `coef`、`std_err`：Logistic系数及标准误。
@@ -288,7 +302,7 @@ $$
 4. `or`、`or_ci_low`、`or_ci_high`：OR值及95%置信区间。
 5. `interpretation`：按OR方向和显著性生成的文字解释。
 
-#### 1.6.4.3 其他结果表字段解释
+#### 5.1.2.4.3 其他结果表字段解释
 
 1. `selected_feature_model_coef.csv`：每一行为一个最终关键指标；列为`feature`和`coef`，用于解释预警模型中各指标方向与强度。
 2. `vif_table.csv`：每一行为一个体质变量；列为`variable`和`vif`，用于评估多重共线性（通常VIF越高共线性风险越大）。
@@ -297,11 +311,11 @@ $$
 5. `constitution_enhancement_table.csv`：每一行为一种九体质增强方案；列包括特征集规模、验证/测试AUC、PR-AUC、Brier及是否退化(`is_degenerate`)。
 6. `constitution_enhancement_top_coef.csv`：记录增强实验中的主要特征贡献（Logistic系数或随机森林重要性），用于解释“哪些体质或交互项被模型重点使用”。
 
-#### 1.6.5 一段式评审结论（正文可直接使用）
+#### 5.1.2.5 一段式评审结论（正文可直接使用）
 
 根据前述评判标准与优化后双集评估结果，问题1在流程规范性、模型校准性、预测模型区分度和医学一致性维度达到通过标准；解释型模型在显著性与区分度维度证据偏弱。该结果表明，九体质模型更适合用于机制趋势解释，而关键生化指标模型更适合用于风险预警。两者分工明确、结论不冲突，问题1已完成“关键指标筛选-体质贡献分析-风险预警验证”的目标闭环。
 
-#### 1.6.6 九体质模型增强实验对比（本轮优化）
+#### 5.1.2.6 九体质模型增强实验对比（本轮优化）
 
 为验证“解释型模型偏弱是否由模型选择不当导致”，本文在相同训练/验证/测试切分下开展三组增强实验：
 
@@ -322,7 +336,7 @@ $$
 
 ---
 
-#### 5.1.2 结果讨论
+#### 5.1.3 结果讨论
 
 1. 关键指标以血脂核心变量为主（TG、TC、LDL-C、HDL-C），与医学常识一致。
 2. 关键指标预警模型AUC较高，提示标签与血脂指标具有较强同源性，属于“诊断近端预测”场景。
@@ -333,7 +347,7 @@ $$
 7. 九体质变量更接近长期易感因素，而标签更接近当期生化诊断结果，二者时间尺度不一致是预测力偏弱的重要原因。
 8. 样本规模与变量共线性也会降低显著性检验效力，因此九体质模块更适合承担“贡献方向解释”，不宜承担“独立诊断判别”。
 
-#### 5.1.2.1 问题一常见误区与规避策略
+#### 5.1.3.1 问题一常见误区与规避策略
 
 结合本题目标与实证过程，问题一高频失分点主要来自“目标错位、变量共线与解释断裂”。建议按以下口径规避：
 
@@ -347,7 +361,7 @@ $$
 
 ---
 
-#### 5.1.3 小结
+#### 5.1.4 小结
 
 1. 问题1的完整代码与结果已实现可复现运行。
 2. 通过三路筛选+投票机制，得到5项关键指标，满足“表征+预警”目标。
@@ -356,15 +370,15 @@ $$
 
 ---
 
-#### 5.1.4 复现说明
+#### 5.1.5 复现说明
 
 问题1复现命令与输出文件对应关系见文末“附录D.2 复现命令与输出目录”。
 
 ---
 
-#### 5.1.5 补充图表与解读
+#### 5.1.6 补充图表与解读
 
-#### A.1 方法选择热力图（补充）
+#### 5.1.6.1 方法选择热力图（补充）
 
 图A-1：[outputs/q1/figures/q1_method_heatmap.png](../outputs/q1/figures/q1_method_heatmap.png)
 
@@ -374,9 +388,9 @@ $$
 2. 单元格取值为0/1，1表示该方法选中该指标。
 3. 该图用于补充验证“投票机制”的来源明细。
 
-![Method-level Selection Matrix](../outputs/q1/figures/q1_method_heatmap.png)
+![方法级筛选矩阵](../outputs/q1/figures/q1_method_heatmap.png)
 
-#### A.2 随机森林重要性图（补充）
+#### 5.1.6.2 随机森林重要性图（补充）
 
 图A-2：[outputs/q1/figures/q1_rf_importance.png](../outputs/q1/figures/q1_rf_importance.png)
 
@@ -386,9 +400,9 @@ $$
 2. 虚线为平均重要性阈值，高于阈值可视为随机森林路径下的重要指标。
 3. 该图用于展示非线性模型视角下的特征贡献排序。
 
-![Q1 Random Forest Feature Importance](../outputs/q1/figures/q1_rf_importance.png)
+![问题一随机森林特征重要性](../outputs/q1/figures/q1_rf_importance.png)
 
-#### A.3 关键指标模型系数图（补充）
+#### 5.1.6.3 关键指标模型系数图（补充）
 
 图A-3：[outputs/q1/figures/q1_selected_model_coef.png](../outputs/q1/figures/q1_selected_model_coef.png)
 
@@ -398,7 +412,7 @@ $$
 2. 条形方向表示风险方向（正值风险增加，负值风险降低趋势）。
 3. 条形绝对值大小表示标准化后贡献强弱。
 
-![Coefficients of Selected-feature Risk Model](../outputs/q1/figures/q1_selected_model_coef.png)
+![关键指标预警模型系数](../outputs/q1/figures/q1_selected_model_coef.png)
 
 ---
 
@@ -415,13 +429,13 @@ $$
 
 #### 5.2.2 目标与交付
 
-#### 2.2.1 目标
+#### 5.2.2.1 目标
 
 1. 构建可输出低/中/高三级风险的预警模型。
 2. 明确三级风险阈值选取依据（概率阈值、复合指数阈值、临床规则阈值）。
 3. 识别痰湿体质高风险人群核心特征组合，并给出解释。
 
-#### 2.2.2 交付文件
+#### 5.2.2.2 交付文件
 
 1. 风险预测明细：[outputs/q2/q2_risk_predictions.csv](../outputs/q2/q2_risk_predictions.csv)
 2. 阈值与规则依据：[outputs/q2/q2_thresholds.json](../outputs/q2/q2_thresholds.json)
@@ -443,7 +457,7 @@ $$
 
 #### 5.2.3 方法与阈值设计
 
-#### 2.3.1 多维融合特征
+#### 5.2.3.1 多维融合特征
 
 模型输入包含四类信息：
 
@@ -454,11 +468,11 @@ $$
 
 并构造血脂异常计数变量 `abnormal_lipid_count` 作为可解释增强特征。
 
-#### 2.3.2 预警模型
+#### 5.2.3.2 预警模型
 
 采用随机森林得到个体风险分值 $p_i$，并在验证集评估AUC、PR-AUC、Brier分数。
 
-#### 2.3.3 三级风险分层：复合风险指数
+#### 5.2.3.3 三级风险分层：复合风险指数
 
 为避免单一模型分值主导，定义复合风险指数：
 
@@ -473,36 +487,36 @@ $$
 3. $A_i$：活动量表总分。
 4. $p_i$：模型风险分值。
 
-#### 2.3.4 阈值选取依据
+#### 5.2.3.4 阈值选取依据
 
 为与题目给出的高风险参考条件保持一致，本文采用“题目锚定规则优先、复合指数辅助细分”的判定流程。
 
-#### 2.3.4.1 概率阈值（模型层）
+#### 5.2.3.4.1 概率阈值（模型层）
 
 1. 在验证集上用Youden指数得到最优二分类阈值 $t^*=0.9632$。
 2. 设 $t_{low}=t^*-0.15=0.8132$，$t_{high}=\min(0.95,t^*+0.15)=0.95$。
 
-#### 2.3.4.2 复合风险指数阈值（分层层）
+#### 5.2.3.4.2 复合风险指数阈值（分层层）
 
 1. 以训练集复合指数分位数设阈：
 2. `index_low` = 35%分位数 = 0.3830。
 3. `index_high` = 75%分位数 = 0.5100。
 
-#### 2.3.4.3 临床规则阈值（门控层）
+#### 5.2.3.4.3 临床规则阈值（门控层）
 
 1. 题目锚定高风险规则A：血脂指标异常且痰湿积分 $\ge 60$。
 2. 题目锚定高风险规则B：血脂指标正常但痰湿积分 $\ge 80$ 且活动能力评分 $<40$。
 3. 辅助细分阈值：痰湿高分阈值 `tan_high=56`，低活动阈值 `activity_low=42`。
 4. 血脂异常判据：TC>6.2、TG>1.7、LDL-C>3.1、HDL-C<1.04。
 
-#### 2.3.5 三级风险规则
+#### 5.2.3.5 三级风险规则
 
 1. 高风险：先判定题目锚定规则A/B；命中即判为高风险。
 2. 辅助高风险：未命中A/B但满足 `R_i >= index_high` 且存在血脂或活动异常者，判为高风险。
 3. 低风险：满足 `R_i < index_low` 且不命中任何高风险门控规则。
 4. 中风险：其余样本。
 
-#### 2.3.6 模型好坏验证设计（稳健性）
+#### 5.2.3.6 模型好坏验证设计（稳健性）
 
 为验证模型是否“过拟合或偶然高分”，增加两类稳健性实验：
 
@@ -517,7 +531,7 @@ $$
 
 #### 5.2.4 结果
 
-#### 2.4.1 模型性能
+#### 5.2.4.1 模型性能
 
 1. 验证集AUC：1.0000。
 2. 测试集AUC：1.0000。
@@ -527,7 +541,7 @@ $$
 
 说明：前四项反映同源信息存在时的判别上限；第5项反映更接近未病预警口径的保守性能下界。二者并列报告可避免将顶格AUC误读为可无限外推能力。
 
-#### 2.4.2 三级风险分层结果
+#### 5.2.4.2 三级风险分层结果
 
 风险层汇总表见 [outputs/q2/q2_risk_tier_summary.csv](../outputs/q2/q2_risk_tier_summary.csv)，并补充验证集与测试集分层汇总分别见 [outputs/q2/q2_risk_tier_summary_val.csv](../outputs/q2/q2_risk_tier_summary_val.csv)、[outputs/q2/q2_risk_tier_summary_test.csv](../outputs/q2/q2_risk_tier_summary_test.csv)。
 
@@ -535,7 +549,7 @@ $$
 2. 中风险：676例，阳性率0.7604。
 3. 高风险：286例，阳性率0.9755。
 
-#### 2.4.3 高风险核心特征组合
+#### 5.2.4.3 高风险核心特征组合
 
 核心组合表见 [outputs/q2/q2_high_risk_core_combos.csv](../outputs/q2/q2_high_risk_core_combos.csv)。代表性组合如下：
 
@@ -547,9 +561,9 @@ $$
 
 结论：高风险并非单一特征触发，而是“血脂异常叠加 + 痰湿偏颇 + 低活动/行为因素”共同驱动。
 
-#### 2.4.4 稳健性验证结果
+#### 5.2.4.4 稳健性验证结果
 
-#### 2.4.4.1 多随机种子重复结果
+#### 5.2.4.4.1 多随机种子重复结果
 
 结果文件见 [outputs/q2/q2_robustness_seed_repeat.csv](../outputs/q2/q2_robustness_seed_repeat.csv) 与 [outputs/q2/q2_robustness_summary.json](../outputs/q2/q2_robustness_summary.json)。
 
@@ -559,7 +573,7 @@ $$
 
 说明：该结果反映的是“任务可分性极高”而非“模型可无限外推”。由于标签与核心血脂指标存在同源性，顶格AUC在本任务中可出现，但不应被单独解读为未病预警能力；因此本文同时使用Brier、校准误差和分层稳定性进行联合判定。
 
-#### 2.4.4.3 反质疑检验（Sanity Check）
+#### 5.2.4.4.2 反质疑检验（Sanity Check）
 
 为避免评审对“顶格指标”产生数据泄漏疑虑，建议在提交版附录增加以下反质疑检验：
 
@@ -569,7 +583,7 @@ $$
 
 若以上检验成立，可证明“高分来自数据可分性而非代码错误或泄漏”。
 
-#### 2.4.4.2 特征消融结果
+#### 5.2.4.4.3 特征消融结果
 
 结果文件见 [outputs/q2/q2_ablation_results.csv](../outputs/q2/q2_ablation_results.csv)。
 
@@ -580,7 +594,7 @@ $$
 
 解释：该数据集中可替代特征强，AUC出现“顶格效应”；因此判断模型优劣不能只看AUC，还应结合Brier和分层稳定性。
 
-#### 2.4.4.4 去同源对照口径（与顶格AUC联动解释）
+#### 5.2.4.4.4 去同源对照口径（与顶格AUC联动解释）
 
 结合消融结果可得到更严格的解释口径：
 
@@ -591,7 +605,7 @@ $$
 
 该口径与前述Sanity Check形成闭环：高分并非由代码错误导致，而是与标签-特征同源结构相关；在剔除同源信息后性能回落到更符合真实预警场景的区间。
 
-#### 2.4.5 概率校准结果（ECE/MCE）
+#### 5.2.4.5 概率校准结果（ECE/MCE）
 
 结果文件见 [outputs/q2/q2_calibration_summary.json](../outputs/q2/q2_calibration_summary.json) 与 [outputs/q2/q2_calibration_table.csv](../outputs/q2/q2_calibration_table.csv)。
 
@@ -601,7 +615,7 @@ $$
 
 说明：ECE低于0.02，表明模型概率输出具备较好校准性，适合用于风险分层阈值解释。
 
-#### 2.4.6 分层阳性率Bootstrap区间
+#### 5.2.4.6 分层阳性率Bootstrap区间
 
 结果文件见 [outputs/q2/q2_tier_bootstrap_ci.csv](../outputs/q2/q2_tier_bootstrap_ci.csv)。
 
@@ -611,7 +625,7 @@ $$
 
 说明：尽管验证/测试样本量较小导致区间较宽，但“中风险 < 高风险”关系在各数据切分下保持稳定。
 
-#### 2.4.7 分层显著性检验（补充）
+#### 5.2.4.7 分层显著性检验（补充）
 
 为增强“分层确有统计学差异”的证据链，基于 `q2_risk_predictions.csv` 增加两类检验：
 
@@ -627,25 +641,25 @@ $$
 
 #### 5.2.5 图表与解读
 
-#### 2.5.1 正文重点图
+#### 5.2.5.1 正文重点图
 
 1. 风险层样本分布图：[outputs/q2/figures/q2_risk_tier_distribution.png](../outputs/q2/figures/q2_risk_tier_distribution.png)
 2. 风险分值箱线图（含阈值线）：[outputs/q2/figures/q2_risk_score_boxplot.png](../outputs/q2/figures/q2_risk_score_boxplot.png)
 3. 高风险核心组合图：[outputs/q2/figures/q2_high_risk_core_combos.png](../outputs/q2/figures/q2_high_risk_core_combos.png)
 
-![Q2 Risk Tier Distribution](../outputs/q2/figures/q2_risk_tier_distribution.png)
+![问题二风险层样本分布](../outputs/q2/figures/q2_risk_tier_distribution.png)
 
 图4-1 低中高风险样本量分布。横轴为风险层级，纵轴为样本数；用于展示分层规模结构。
 
-![Q2 Risk Score by Tier](../outputs/q2/figures/q2_risk_score_boxplot.png)
+![问题二各风险层风险分值分布](../outputs/q2/figures/q2_risk_score_boxplot.png)
 
 图4-2 各风险层模型分值分布。横轴为风险层级，纵轴为风险分值；虚线表示概率参考阈值，体现分层与风险分值的一致性。
 
-![Q2 Core Feature Combinations in High-risk Group](../outputs/q2/figures/q2_high_risk_core_combos.png)
+![问题二高风险核心特征组合](../outputs/q2/figures/q2_high_risk_core_combos.png)
 
 图4-3 高风险核心组合支持度。横轴为组合在高风险样本内支持度，纵轴为特征组合；用于回答“高风险由哪些特征叠加形成”。
 
-#### 2.5.2 附录图
+#### 5.2.5.2 附录图
 
 1. 特征重要性图：[outputs/q2/figures/q2_feature_importance_top12.png](../outputs/q2/figures/q2_feature_importance_top12.png)
 
@@ -686,14 +700,14 @@ $$
 
 #### 5.3.2 目标与交付
 
-#### 3.2.1 目标
+#### 5.3.2.1 目标
 
 1. 针对体质标签为5（痰湿质）人群，制定6个月个体化健康干预方案。
 2. 方案需同时满足附表约束：调理分级适配、年龄与活动能力对运动强度约束、预算约束。
 3. 给出样本ID 1、2、3的最优方案。
 4. 输出“特征-方案匹配规律”，支持推广应用。
 
-#### 3.2.2 交付文件
+#### 5.3.2.2 交付文件
 
 1. 全体患者最优方案：[outputs/q3/q3_patient_optimal_plans.csv](../outputs/q3/q3_patient_optimal_plans.csv)
 2. 样本ID 1/2/3方案：[outputs/q3/q3_sample_1_2_3_optimal_plan.csv](../outputs/q3/q3_sample_1_2_3_optimal_plan.csv)
@@ -709,14 +723,14 @@ $$
 
 #### 5.3.3 模型假设与变量定义
 
-#### 3.3.1 基础假设
+#### 5.3.3.1 基础假设
 
 1. 干预方案在6个月内保持稳定执行（调理等级、强度、频次不随月变化）。
 2. 每月痰湿积分按固定下降率递推，适用于中短期（6个月）预测。
 3. 调理与运动效果可加和后形成总月降幅，月降幅设置上限30%，避免不合理高估。
 4. 预算约束为硬约束，超过2000元的方案不可行。
 
-#### 3.3.2 决策变量
+#### 5.3.3.2 决策变量
 
 对每个样本 $i$：
 
@@ -724,7 +738,7 @@ $$
 2. 运动强度等级 $s_i\in\{1,2,3\}$（受年龄和活动能力约束）。
 3. 每周运动频次 $f_i\in\{1,2,\ldots,10\}$。
 
-#### 3.3.3 状态与成本变量
+#### 5.3.3.3 状态与成本变量
 
 1. 初始痰湿积分：$T_{i,0}$（来自数据字段`痰湿质`）。
 2. 月下降率：$d_i$。
@@ -735,7 +749,7 @@ $$
 
 #### 5.3.4 约束条件建模
 
-#### 3.4.1 调理分级适配约束（附表2）
+#### 5.3.4.1 调理分级适配约束（附表2）
 
 按初始痰湿积分分段确定调理等级：
 
@@ -743,7 +757,7 @@ $$
 2. $59\le T_{i,0}\le61\Rightarrow r_i=2$。
 3. $T_{i,0}\ge62\Rightarrow r_i=3$。
 
-#### 3.4.2 运动强度上限约束（附表3）
+#### 5.3.4.2 运动强度上限约束（附表3）
 
 年龄约束上限：
 
@@ -763,7 +777,7 @@ $$
  s_i^{max}=\min(s_i^{age},s_i^{act})
 $$
 
-#### 3.4.3 预算约束（附表4）
+#### 5.3.4.3 预算约束（附表4）
 
 6个月成本定义：
 
@@ -784,7 +798,7 @@ $$
 
 #### 5.3.5 效果函数与优化目标
 
-#### 3.5.1 月下降率函数
+#### 5.3.5.1 月下降率函数
 
 调理基础下降率设定：
 
@@ -808,13 +822,13 @@ $$
 d_i=\min\left(0.30,\delta_{reg}(r_i)+\delta_{act}(s_i,f_i)\right)
 $$
 
-#### 3.5.2 6个月递推
+#### 5.3.5.2 6个月递推
 
 $$
 T_{i,m}=T_{i,m-1}(1-d_i),\quad m=1,2,\ldots,6
 $$
 
-#### 3.5.3 双层优化目标
+#### 5.3.5.3 双层优化目标
 
 对每个样本在可行集合 $\Omega_i$ 内优化：
 
@@ -830,7 +844,7 @@ $$
 
 即“疗效优先、成本次优”。
 
-#### 3.5.4 复杂度与最优性说明
+#### 5.3.5.4 复杂度与最优性说明
 
 本文问题3采用离散可行域枚举而非启发式近似，其理论性质如下：
 
@@ -845,7 +859,7 @@ $$
 
 #### 5.3.6 结果分析
 
-#### 3.6.1 整体结果
+#### 5.3.6.1 整体结果
 
 由 [outputs/q3/q3_summary.json](../outputs/q3/q3_summary.json) 可得：
 
@@ -864,7 +878,7 @@ $$
 
 按上述标准，样本ID 1/2/3均达到“有效降低”判据。
 
-#### 3.6.2 样本ID 1/2/3最优方案
+#### 5.3.6.2 样本ID 1/2/3最优方案
 
 由 [outputs/q3/q3_sample_1_2_3_optimal_plan.csv](../outputs/q3/q3_sample_1_2_3_optimal_plan.csv) 得：
 
@@ -874,7 +888,7 @@ $$
 
 可以看出，三位样本均在“预算内+强度约束内”获得高频执行方案（每周10次），符合疗效优先目标。
 
-#### 3.6.3 匹配规律（可推广规则）
+#### 5.3.6.3 匹配规律（可推广规则）
 
 由 [outputs/q3/q3_matching_rules.csv](../outputs/q3/q3_matching_rules.csv) 可提取规则：
 
@@ -895,7 +909,7 @@ $$
 
 该表可直接作为正文中的“匹配规律”证据表，支持按人群特征进行策略推荐。
 
-#### 3.6.4 稳健性与敏感性验证
+#### 5.3.6.4 稳健性与敏感性验证
 
 为检验问题3方案是否对参数设定过度敏感，构建两类扰动实验：
 
@@ -918,21 +932,21 @@ $$
 
 #### 5.3.7 图表与解读
 
-#### 3.7.1 正文重点图
+#### 5.3.7.1 正文重点图
 
 1. 方案分布图：[outputs/q3/figures/q3_plan_distribution.png](../outputs/q3/figures/q3_plan_distribution.png)
 2. 成本-降幅散点图：[outputs/q3/figures/q3_cost_vs_reduction.png](../outputs/q3/figures/q3_cost_vs_reduction.png)
 3. 样本1/2/3轨迹图：[outputs/q3/figures/q3_sample_1_2_3_trajectory.png](../outputs/q3/figures/q3_sample_1_2_3_trajectory.png)
 
-![Q3 Plan Distribution](../outputs/q3/figures/q3_plan_distribution.png)
+![问题三最优方案分布](../outputs/q3/figures/q3_plan_distribution.png)
 
 图6-1 方案分布图。横轴为调理等级，颜色为运动强度，纵轴为样本数，用于展示全体最优方案结构。
 
-![Q3 Cost vs Reduction Rate](../outputs/q3/figures/q3_cost_vs_reduction.png)
+![问题三成本与降幅关系](../outputs/q3/figures/q3_cost_vs_reduction.png)
 
 图6-2 成本与降幅关系。横轴为6个月总成本，纵轴为痰湿降幅率，点大小表示周频次，颜色表示运动强度。
 
-![Q3 Sample 1/2/3 Trajectory](../outputs/q3/figures/q3_sample_1_2_3_trajectory.png)
+![问题三样本1/2/3痰湿积分轨迹](../outputs/q3/figures/q3_sample_1_2_3_trajectory.png)
 
 图6-3 样本ID 1/2/3在0-6个月的痰湿积分下降轨迹，可用于论文正文展示个体化方案效果。
 
@@ -1023,7 +1037,7 @@ $$
 2. 体质变量边界：九体质变量在当前样本下更适合解释长期风险倾向，难以单独替代生化诊断判别。
 3. 泛化边界：当前结论基于单数据集验证，跨地区、跨机构应用前需外部验证与阈值重标定。
 
-## 参考文献
+## 八、参考文献
 
 [1] Hosmer D W, Lemeshow S, Sturdivant R X. Applied Logistic Regression. 3rd ed. Wiley, 2013.
 
@@ -1031,7 +1045,7 @@ $$
 
 [3] Efron B, Tibshirani R J. An Introduction to the Bootstrap. Chapman & Hall, 1993.
 
-## 附录
+## 九、附录
 
 附录A至附录C对应正文中的补充图表、结果字段释义与复现命令，相关输出文件均位于 `outputs/q1`、`outputs/q2`、`outputs/q3` 目录。
 

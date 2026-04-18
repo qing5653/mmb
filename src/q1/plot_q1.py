@@ -12,40 +12,51 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from matplotlib import font_manager
 from matplotlib.ticker import FuncFormatter
 
 
 FEATURE_MAP = {
     "TG（甘油三酯）": "TG",
     "TC（总胆固醇）": "TC",
-    "血尿酸": "Uric Acid",
+    "血尿酸": "血尿酸",
     "LDL-C（低密度脂蛋白）": "LDL-C",
     "HDL-C（高密度脂蛋白）": "HDL-C",
-    "空腹血糖": "Fasting Glucose",
+    "空腹血糖": "空腹血糖",
     "BMI": "BMI",
-    "ADL总分": "ADL Score",
-    "IADL总分": "IADL Score",
-    "活动量表总分（ADL总分+IADL总分）": "Total Activity Score",
-    "活动量表总分": "Total Activity Score",
+    "ADL总分": "ADL总分",
+    "IADL总分": "IADL总分",
+    "活动量表总分（ADL总分+IADL总分）": "活动总分",
+    "活动量表总分": "活动总分",
 }
 
 CONSTITUTION_MAP = {
-    "平和质": "Balanced",
-    "气虚质": "Qi-deficient",
-    "阳虚质": "Yang-deficient",
-    "阴虚质": "Yin-deficient",
-    "痰湿质": "Phlegm-dampness",
-    "湿热质": "Damp-heat",
-    "血瘀质": "Blood-stasis",
-    "气郁质": "Qi-depressed",
-    "特禀质": "Special diathesis",
+    "平和质": "平和质",
+    "气虚质": "气虚质",
+    "阳虚质": "阳虚质",
+    "阴虚质": "阴虚质",
+    "痰湿质": "痰湿质",
+    "湿热质": "湿热质",
+    "血瘀质": "血瘀质",
+    "气郁质": "气郁质",
+    "特禀质": "特禀质",
 }
 
 
 def _prepare_font() -> None:
-    plt.rcParams["font.sans-serif"] = ["DejaVu Sans", "Arial", "Liberation Sans"]
-    plt.rcParams["axes.unicode_minus"] = False
     sns.set_theme(style="whitegrid", context="talk")
+    preferred = [
+        "AR PL UMing CN",
+        "Droid Sans Fallback",
+        "Noto Sans CJK JP",
+        "Noto Serif CJK JP",
+        "AR PL UMing CN",
+    ]
+    installed = {f.name for f in font_manager.fontManager.ttflist}
+    chosen = next((f for f in preferred if f in installed), "DejaVu Sans")
+    plt.rcParams["font.family"] = [chosen]
+    plt.rcParams["font.sans-serif"] = [chosen, "DejaVu Sans"]
+    plt.rcParams["axes.unicode_minus"] = False
     plt.rcParams["figure.facecolor"] = "white"
     plt.rcParams["axes.facecolor"] = "#fcfcfd"
     plt.rcParams["axes.edgecolor"] = "#d0d7de"
@@ -91,7 +102,6 @@ def plot_feature_votes(fs: pd.DataFrame, out: Path) -> None:
     view = fs.sort_values(["votes", "rf_importance"], ascending=[False, False]).copy()
     view["selected"] = view["final_selected"].map({True: "入选", False: "未入选"})
     view["feature_en"] = view["feature"].map(_map_feature_name)
-    view["selected"] = view["selected"].map({"入选": "Selected", "未入选": "Not selected"})
 
     plt.figure(figsize=(11, 6.4))
     ax = sns.barplot(
@@ -100,13 +110,13 @@ def plot_feature_votes(fs: pd.DataFrame, out: Path) -> None:
         y="feature_en",
         hue="selected",
         dodge=False,
-        palette={"Selected": "#0f766e", "Not selected": "#94a3b8"},
+        palette={"入选": "#0f766e", "未入选": "#94a3b8"},
         edgecolor="#334155",
         linewidth=0.5,
     )
-    plt.title("Q1 Feature Voting Results", fontsize=18, weight="bold")
-    plt.xlabel("Vote Count (Three-method Ensemble)")
-    plt.ylabel("Candidate Feature")
+    plt.title("问题一关键指标投票结果", fontsize=18, weight="bold")
+    plt.xlabel("投票数（三方法集成）")
+    plt.ylabel("候选指标")
     plt.xlim(0, 3.2)
     _add_hbar_value_labels(ax, "{:.0f}")
     _beautify_axis()
@@ -132,10 +142,10 @@ def plot_vote_heatmap(fs: pd.DataFrame, out: Path) -> None:
         fmt="d",
         annot_kws={"fontsize": 11, "weight": "bold"},
     )
-    ax.set_title("Method-level Selection Matrix", fontsize=16, weight="bold", pad=12)
-    ax.set_xlabel("Selection Method")
-    ax.set_ylabel("Feature")
-    ax.set_xticklabels(["Correlation", "L1-Logistic", "Random Forest"], rotation=0)
+    ax.set_title("方法级筛选矩阵", fontsize=16, weight="bold", pad=12)
+    ax.set_xlabel("筛选方法")
+    ax.set_ylabel("指标")
+    ax.set_xticklabels(["相关性", "L1-Logistic", "随机森林"], rotation=0)
     _beautify_axis()
     _save_fig(out / "q1_method_heatmap.png")
 
@@ -157,10 +167,10 @@ def plot_rf_importance(fs: pd.DataFrame, out: Path) -> None:
         legend=False,
     )
     mean_val = float(view["rf_importance_mean"].iloc[0]) if "rf_importance_mean" in view.columns else float(view["rf_importance"].mean())
-    plt.axvline(mean_val, color="#ef4444", linestyle="--", linewidth=1.5, label=f"Mean={mean_val:.3f}")
-    plt.title("Q1 Random Forest Feature Importance", fontsize=18, weight="bold")
-    plt.xlabel("Gini-based Importance")
-    plt.ylabel("Candidate Feature")
+    plt.axvline(mean_val, color="#ef4444", linestyle="--", linewidth=1.5, label=f"均值={mean_val:.3f}")
+    plt.title("问题一随机森林特征重要性", fontsize=18, weight="bold")
+    plt.xlabel("基于Gini的重要性")
+    plt.ylabel("候选指标")
     _add_hbar_value_labels(ax, "{:.3f}")
     plt.legend(frameon=False, loc="lower right")
     _beautify_axis()
@@ -184,8 +194,8 @@ def plot_or_forest(or_df: pd.DataFrame, out: Path) -> None:
     plt.axvline(1.0, linestyle="--", color="#111827", linewidth=1.3)
     plt.yticks(list(y), view["variable_en"])
     plt.xscale("log")
-    plt.xlabel("OR (log scale)")
-    plt.title("OR and 95% CI of Nine Constitutions", fontsize=18, weight="bold")
+    plt.xlabel("OR（对数尺度）")
+    plt.title("九体质OR及95%置信区间", fontsize=18, weight="bold")
     plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.2f}" if v >= 1 else f"{v:.2f}"))
     _beautify_axis()
     _save_fig(out / "q1_or_forest.png")
@@ -196,7 +206,7 @@ def plot_auc_compare(summary: dict, out: Path) -> None:
     auc_feat = summary.get("selected_feature_model", {}).get("val_auc", float("nan"))
     comp = pd.DataFrame(
         {
-            "model": ["Constitution Logistic", "Selected-feature Risk Model"],
+            "model": ["九体质Logistic", "关键指标预警模型"],
             "auc": [auc_const, auc_feat],
         }
     )
@@ -204,9 +214,9 @@ def plot_auc_compare(summary: dict, out: Path) -> None:
     plt.figure(figsize=(8.2, 5.6))
     sns.barplot(data=comp, x="model", y="auc", hue="model", palette=["#64748b", "#10b981"], legend=False)
     plt.ylim(0, 1.05)
-    plt.ylabel("Validation AUC")
+    plt.ylabel("验证集AUC")
     plt.xlabel("")
-    plt.title("Q1 Validation AUC Comparison", fontsize=18, weight="bold")
+    plt.title("问题一验证集AUC对比", fontsize=18, weight="bold")
     for i, v in enumerate(comp["auc"]):
         plt.text(i, min(v + 0.02, 1.02), f"{v:.4f}", ha="center", fontsize=11, weight="bold")
     _beautify_axis()
@@ -229,9 +239,9 @@ def plot_selected_coef(coef_df: pd.DataFrame, out: Path) -> None:
         linewidth=0.4,
         legend=False,
     )
-    plt.title("Coefficients of Selected-feature Risk Model", fontsize=18, weight="bold")
-    plt.xlabel("Standardized Coefficient")
-    plt.ylabel("Feature")
+    plt.title("关键指标预警模型系数", fontsize=18, weight="bold")
+    plt.xlabel("标准化系数")
+    plt.ylabel("指标")
     _add_hbar_value_labels(ax, "{:.3f}")
     _beautify_axis()
     _save_fig(out / "q1_selected_model_coef.png")
