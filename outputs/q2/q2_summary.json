@@ -3,148 +3,95 @@
   "output_dir": "outputs/q2",
   "seed": 42,
   "sample_size": 1000,
-  "train_size": 700,
-  "val_size": 150,
-  "test_size": 150,
-  "model": "RandomForestClassifier(n_estimators=700, min_samples_leaf=3)",
-  "model_features": [
-    "HDL-C（高密度脂蛋白）",
-    "LDL-C（低密度脂蛋白）",
-    "TG（甘油三酯）",
-    "TC（总胆固醇）",
-    "空腹血糖",
-    "血尿酸",
-    "BMI",
-    "活动量表总分（ADL总分+IADL总分）",
-    "年龄组",
-    "性别",
-    "吸烟史",
-    "饮酒史",
-    "平和质",
-    "气虚质",
-    "阳虚质",
-    "阴虚质",
-    "痰湿质",
-    "湿热质",
-    "血瘀质",
-    "气郁质",
-    "特禀质",
-    "abnormal_lipid_count"
-  ],
-  "val_metrics": {
-    "auc": 1.0,
-    "pr_auc": 1.0,
-    "brier": 0.002573395539853404
+  "model": "GradientBoostingClassifier(n_estimators=200, max_depth=4, learning_rate=0.1)",
+  "track_A_no_lipid_5fold": {
+    "auc_mean": 0.8771057032621574,
+    "auc_std": 0.025080997069375943,
+    "f1_mean": 0.8787512722339068,
+    "accuracy_mean": 0.8029999999999999
   },
-  "test_metrics": {
-    "auc": 1.0,
-    "pr_auc": 0.9999999999999999,
-    "brier": 0.0023058555776603144
-  },
-  "risk_index_threshold": {
-    "index_low": 0.38125522295665054,
-    "index_high": 0.501922087424488
+  "track_B_with_lipid_5fold": {
+    "auc_mean": 0.9927990708478512,
+    "auc_std": 0.009553507420524418,
+    "f1_mean": 0.998115179117131,
+    "accuracy_mean": 0.9970000000000001
   },
   "risk_level_counts": {
-    "中风险": 676,
-    "高风险": 286,
-    "低风险": 38
+    "中风险": 748,
+    "低风险": 142,
+    "高风险": 110
   },
   "risk_level_positive_rate": {
     "低风险": 0.0,
-    "中风险": 0.7603550295857988,
-    "高风险": 0.9755244755244755
+    "中风险": 0.9131016042780749,
+    "高风险": 1.0
   },
   "risk_level_positive_rate_val": {
     "低风险": 0.0,
-    "中风险": 0.7211538461538461,
+    "中风险": 0.9320388349514563,
     "高风险": 1.0
   },
   "risk_level_positive_rate_test": {
     "低风险": 0.0,
-    "中风险": 0.7444444444444445,
-    "高风险": 0.9629629629629629
+    "中风险": 0.9322033898305084,
+    "高风险": 1.0
   },
   "top_high_risk_combos": [
     {
-      "combo": "TG异常 + TC异常",
-      "combo_size": 2,
-      "support_high": 0.44755244755244755,
-      "support_all": 0.197,
-      "lift": 2.2718398352800797,
-      "count_high": 128,
-      "n_high": 286,
-      "n_all": 1000
+      "combo": "TG>=1.7 & TC>=6.2",
+      "sample_count": 197,
+      "positive_rate": 1.0,
+      "lift": 1.2610340479177036,
+      "risk_grade": "高"
     },
     {
-      "combo": "TG异常 + 饮酒史",
-      "combo_size": 2,
-      "support_high": 0.3706293706293706,
-      "support_all": 0.275,
-      "lift": 1.3477431659200831,
-      "count_high": 106,
-      "n_high": 286,
-      "n_all": 1000
+      "combo": "痰湿积分>=60 & TG>=1.7",
+      "sample_count": 70,
+      "positive_rate": 1.0,
+      "lift": 1.2610340479177036,
+      "risk_grade": "高"
     },
     {
-      "combo": "TG异常 + 吸烟史",
-      "combo_size": 2,
-      "support_high": 0.35664335664335667,
-      "support_all": 0.257,
-      "lift": 1.3877173410193344,
-      "count_high": 102,
-      "n_high": 286,
-      "n_all": 1000
+      "combo": "BMI>=25 & TG>=1.7",
+      "sample_count": 67,
+      "positive_rate": 1.0,
+      "lift": 1.2610340479177036,
+      "risk_grade": "高"
     },
     {
-      "combo": "TC异常 + 饮酒史",
-      "combo_size": 2,
-      "support_high": 0.34615384615384615,
-      "support_all": 0.233,
-      "lift": 1.4856388246882424,
-      "count_high": 99,
-      "n_high": 286,
-      "n_all": 1000
+      "combo": "痰湿积分>=60 & 活动<40",
+      "sample_count": 26,
+      "positive_rate": 0.8846153846153846,
+      "lift": 1.1155301193118146,
+      "risk_grade": "中"
     },
     {
-      "combo": "TG异常 + LDL异常",
-      "combo_size": 2,
-      "support_high": 0.3041958041958042,
-      "support_all": 0.125,
-      "lift": 2.4335664335469653,
-      "count_high": 87,
-      "n_high": 286,
-      "n_all": 1000
+      "combo": "痰湿体质(标签=5) & 活动<40",
+      "sample_count": 48,
+      "positive_rate": 0.8125,
+      "lift": 1.024590163933134,
+      "risk_grade": "中"
     },
     {
-      "combo": "TC异常 + LDL异常",
-      "combo_size": 2,
-      "support_high": 0.3006993006993007,
-      "support_all": 0.119,
-      "lift": 2.526884879804822,
-      "count_high": 86,
-      "n_high": 286,
-      "n_all": 1000
+      "combo": "痰湿积分>=60 & 年龄组>=3",
+      "sample_count": 91,
+      "positive_rate": 0.7362637362637363,
+      "lift": 0.928453639675672,
+      "risk_grade": "低"
     },
     {
-      "combo": "痰湿高分 + TG异常",
-      "combo_size": 2,
-      "support_high": 0.3006993006993007,
-      "support_all": 0.132,
-      "lift": 2.2780250052804742,
-      "count_high": 86,
-      "n_high": 286,
-      "n_all": 1000
+      "combo": "痰湿积分>=60 & BMI>=25",
+      "sample_count": 18,
+      "positive_rate": 0.7222222222222222,
+      "lift": 0.9107468123850081,
+      "risk_grade": "低"
     },
     {
-      "combo": "TC异常 + 吸烟史",
-      "combo_size": 2,
-      "support_high": 0.3006993006993007,
-      "support_all": 0.226,
-      "lift": 1.330527879194558,
-      "count_high": 86,
-      "n_high": 286,
-      "n_all": 1000
+      "combo": "痰湿体质(标签=5) & BMI>=25",
+      "sample_count": 40,
+      "positive_rate": 0.7,
+      "lift": 0.8827238335423925,
+      "risk_grade": "低"
     }
   ],
   "thresholds_file": "q2_thresholds.json"

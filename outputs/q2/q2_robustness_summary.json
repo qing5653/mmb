@@ -1,52 +1,52 @@
 {
-  "seed_repeat": {
-    "seed_start": 42,
-    "seed_count": 10,
-    "val_auc_mean": 1.0,
-    "val_auc_std": 0.0,
-    "val_auc_min": 1.0,
-    "val_auc_max": 1.0,
-    "test_auc_mean": 1.0,
-    "test_auc_std": 0.0,
-    "test_auc_min": 1.0,
-    "test_auc_max": 1.0,
-    "val_pr_auc_mean": 1.0,
-    "val_pr_auc_std": 3.510833468576701e-17,
-    "val_pr_auc_min": 0.9999999999999999,
-    "val_pr_auc_max": 1.0,
-    "test_pr_auc_mean": 1.0,
-    "test_pr_auc_std": 4.965068306494546e-17,
-    "test_pr_auc_min": 0.9999999999999999,
-    "test_pr_auc_max": 1.0,
-    "val_brier_mean": 0.0021128691933125264,
-    "val_brier_std": 0.000812138112819235,
-    "val_brier_min": 0.0007261154455627177,
-    "val_brier_max": 0.003025231547134351,
-    "test_brier_mean": 0.0016878911159340637,
-    "test_brier_std": 0.0003808020877775946,
-    "test_brier_min": 0.0011155357661312535,
-    "test_brier_max": 0.0023536812199466757
+  "seed_range": [
+    42,
+    51
+  ],
+  "seed_repeat_rows": 10,
+  "ablation_rows": 4,
+  "main_track": "track_A_no_lipid",
+  "track_A_features": 17,
+  "track_B_features": 21,
+  "seed_repeat_auc": {
+    "test_auc_mean": 0.865979940363242,
+    "test_auc_std": 0.029944826646710842,
+    "test_auc_min": 0.8208186500406613,
+    "test_auc_max": 0.9070208728652752
   },
-  "ablation": {
-    "full_model_test_auc": 1.0,
-    "remove_core_lipids_test_auc": 1.0,
-    "strict_no_homology_test_auc": 0.7972350230414745,
-    "test_auc_drop_without_core_lipids": 0.0,
-    "test_auc_drop_strict_no_homology": 0.20276497695852547,
-    "table_file": "q2_ablation_results.csv"
+  "seed_repeat_pr_auc": {
+    "test_pr_auc_mean": 0.9646851163237231,
+    "test_pr_auc_std": 0.009729554817916005,
+    "test_pr_auc_min": 0.9464079661818451,
+    "test_pr_auc_max": 0.9777154478298918
+  },
+  "seed_repeat_brier": {
+    "test_brier_mean": 0.13314717537975246,
+    "test_brier_std": 0.016918277314527382,
+    "test_brier_min": 0.10720065514103702,
+    "test_brier_max": 0.15586200457945543
+  },
+  "best_ablation": {
+    "experiment": "track_B_with_lipid",
+    "n_features": 21,
+    "val_auc": 0.9737056112767688,
+    "test_auc": 1.0,
+    "val_pr_auc": 0.986531279178338,
+    "test_pr_auc": 1.0,
+    "val_brier": 0.006666666567907833,
+    "test_brier": 0.005424384278885897
   },
   "calibration": {
-    "table_file": "q2_calibration_table.csv",
-    "summary_file": "q2_calibration_summary.json",
-    "val_ece": 0.01717705619934489,
-    "test_ece": 0.01916553003517611,
-    "val_mce": 0.08941157641246991,
-    "test_mce": 0.10864104708403313
-  },
-  "tier_bootstrap_ci": {
-    "table_file": "q2_tier_bootstrap_ci.csv",
-    "bootstrap_n": 1000,
-    "available": true
-  },
-  "conclusion_hint": "当AUC顶格时，应联合Brier、ECE与分层CI评估模型好坏。"
+    "val": {
+      "ece": 0.07709574330868411,
+      "mce": 0.2388933654427864,
+      "n_bins_effective": 10
+    },
+    "test": {
+      "ece": 0.12804197229153794,
+      "mce": 0.3273964654089143,
+      "n_bins_effective": 10
+    },
+    "note": "基于去血脂主轨模型A计算，ECE越低表示概率校准越好。"
+  }
 }

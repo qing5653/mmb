@@ -105,8 +105,9 @@ def plot_score_box(pred: pd.DataFrame, thresholds: dict, out: Path) -> None:
     pred = pred.copy()
     pred["risk_level"] = pred["risk_level"].map(RISK_MAP)
     order = ["低风险", "中风险", "高风险"]
-    t_low = thresholds["probability_threshold"]["t_low"]
-    t_high = thresholds["probability_threshold"]["t_high"]
+    prob_cfg = thresholds.get("probability_threshold", {})
+    t_low = prob_cfg.get("t_low")
+    t_high = prob_cfg.get("t_high")
 
     plt.figure(figsize=(9.4, 6.0))
     sns.boxplot(
@@ -120,12 +121,15 @@ def plot_score_box(pred: pd.DataFrame, thresholds: dict, out: Path) -> None:
         linewidth=1.2,
         legend=False,
     )
-    plt.axhline(t_low, color="#2a9d8f", linestyle="--", linewidth=1.3, label=f"t_low={t_low:.3f}")
-    plt.axhline(t_high, color="#e76f51", linestyle="--", linewidth=1.3, label=f"t_high={t_high:.3f}")
+    if t_low is not None:
+        plt.axhline(t_low, color="#2a9d8f", linestyle="--", linewidth=1.3, label=f"t_low={t_low:.3f}")
+    if t_high is not None:
+        plt.axhline(t_high, color="#e76f51", linestyle="--", linewidth=1.3, label=f"t_high={t_high:.3f}")
     plt.title("问题二各风险层风险分值分布", weight="bold")
     plt.xlabel("风险层级")
     plt.ylabel("模型风险分值")
-    plt.legend(frameon=False, loc="upper left")
+    if t_low is not None or t_high is not None:
+        plt.legend(frameon=False, loc="upper left")
     _save(out / "q2_risk_score_boxplot.png")
 
 
@@ -148,6 +152,10 @@ def plot_feature_importance(imp: pd.DataFrame, out: Path) -> None:
 def plot_core_combos(combo: pd.DataFrame, out: Path) -> None:
     if combo.empty:
         return
+
+    combo = combo.copy()
+    if "support_high" not in combo.columns and "positive_rate" in combo.columns:
+        combo["support_high"] = combo["positive_rate"]
 
     top = combo.head(10).copy().sort_values("support_high", ascending=True)
     top["combo"] = top["combo"].map(_map_combo)
