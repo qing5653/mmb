@@ -162,8 +162,17 @@ def optimize_single_patient(sample_id: int, age_group: int, activity_total: floa
             "note": "no-feasible-under-budget",
         }
 
-    # 目标：先最小化6个月末痰湿积分，再最小化总成本
-    best = sorted(candidates, key=lambda x: (x["tan_final_6m"], x["total_cost_6m"]))[0]
+    # 目标：先最小化6个月末痰湿积分，再最小化总成本；若仍并列，优先更易执行方案。
+    # 并列打破顺序：频次更低 -> 强度更低。
+    best = sorted(
+        candidates,
+        key=lambda x: (
+            x["tan_final_6m"],
+            x["total_cost_6m"],
+            x["frequency_per_week"],
+            x["activity_intensity"],
+        ),
+    )[0]
     return best
 
 

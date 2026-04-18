@@ -105,9 +105,27 @@ def plot_score_box(pred: pd.DataFrame, thresholds: dict, out: Path) -> None:
     pred = pred.copy()
     pred["risk_level"] = pred["risk_level"].map(RISK_MAP)
     order = ["低风险", "中风险", "高风险"]
+    # 兼容新旧阈值格式：
+    # 旧版: {"probability_threshold": {"t_low": ..., "t_high": ...}}
+    # 新版: {"score_based_tier": {"base_rule": ["risk_score < x", "x <= ... < y", ...]}}
     prob_cfg = thresholds.get("probability_threshold", {})
     t_low = prob_cfg.get("t_low")
     t_high = prob_cfg.get("t_high")
+
+    if t_low is None or t_high is None:
+        score_cfg = thresholds.get("score_based_tier", {})
+        base_rule = score_cfg.get("base_rule", [])
+        if isinstance(base_rule, list) and len(base_rule) >= 2:
+            try:
+                # 示例："risk_score < 0.123714 -> 低风险"
+                left = str(base_rule[0]).split("<", maxsplit=1)[1].split("->", maxsplit=1)[0].strip()
+                # 示例："0.123714 <= risk_score < 0.998444 -> 中风险"
+                middle = str(base_rule[1]).split("<")
+                right = middle[-1].split("->", maxsplit=1)[0].strip()
+                t_low = float(left)
+                t_high = float(right)
+            except (ValueError, IndexError):
+                t_low, t_high = None, None
 
     plt.figure(figsize=(9.4, 6.0))
     sns.boxplot(
@@ -131,6 +149,77 @@ def plot_score_box(pred: pd.DataFrame, thresholds: dict, out: Path) -> None:
     if t_low is not None or t_high is not None:
         plt.legend(frameon=False, loc="upper left")
     _save(out / "q2_risk_score_boxplot.png")
+
+
+def plot_score_box_dual_panel(pred: pd.DataFrame, thresholds: dict, out: Path) -> None:
+    """双面板展示风险分值：上图全范围，下图放大高分段。"""
+    pred = pred.copy()
+    pred["risk_level"] = pred["risk_level"].map(RISK_MAP)
+    order = ["低风险", "中风险", "高风险"]
+
+    prob_cfg = thresholds.get("probability_threshold", {})
+    t_low = prob_cfg.get("t_low")
+    t_high = prob_cfg.get("t_high")
+
+    if t_low is None or t_high is None:
+        score_cfg = thresholds.get("score_based_tier", {})
+        base_rule = score_cfg.get("base_rule", [])
+        if isinstance(base_rule, list) and len(base_rule) >= 2:
+            try:
+                left = str(base_rule[0]).split("<", maxsplit=1)[1].split("->", maxsplit=1)[0].strip()
+                middle = str(base_rule[1]).split("<")
+                right = middle[-1].split("->", maxsplit=1)[0].strip()
+                t_low = float(left)
+                t_high = float(right)
+            except (ValueError, IndexError):
+                t_low, t_high = None, None
+
+    fig, axes = plt.subplots(2, 1, figsize=(9.6, 9.0), sharex=True)
+
+    sns.boxplot(
+        data=pred,
+        x="risk_level",
+        y="risk_score",
+        order=order,
+        hue="risk_level",
+        palette=["#2a9d8f", "#e9c46a", "#e76f51"],
+        dodge=False,
+        linewidth=1.2,
+        legend=False,
+        ax=axes[0],
+    )
+    axes[0].set_title("问题二风险分值分布（全范围）", weight="bold")
+    axes[0].set_ylabel("模型风险分值")
+    axes[0].set_xlabel("")
+    if t_low is not None:
+        axes[0].axhline(t_low, color="#2a9d8f", linestyle="--", linewidth=1.2, label=f"t_low={t_low:.3f}")
+    if t_high is not None:
+        axes[0].axhline(t_high, color="#e76f51", linestyle="--", linewidth=1.2, label=f"t_high={t_high:.3f}")
+    if t_low is not None or t_high is not None:
+        axes[0].legend(frameon=False, loc="upper left")
+
+    sns.boxplot(
+        data=pred,
+        x="risk_level",
+        y="risk_score",
+        order=order,
+        hue="risk_level",
+        palette=["#2a9d8f", "#e9c46a", "#e76f51"],
+        dodge=False,
+        linewidth=1.2,
+        legend=False,
+        ax=axes[1],
+    )
+    axes[1].set_ylim(0.90, 1.001)
+    axes[1].set_title("问题二风险分值分布（高分段放大）", weight="bold")
+    axes[1].set_xlabel("风险层级")
+    axes[1].set_ylabel("模型风险分值")
+    if t_high is not None and 0.90 <= t_high <= 1.001:
+        axes[1].axhline(t_high, color="#e76f51", linestyle="--", linewidth=1.2)
+
+    plt.tight_layout()
+    plt.savefig(out / "q2_risk_score_boxplot_dual.png", dpi=320, bbox_inches="tight")
+    plt.close()
 
 
 def plot_feature_importance(imp: pd.DataFrame, out: Path) -> None:
@@ -187,6 +276,7 @@ def main() -> None:
 
     plot_risk_distribution(pred, fig_dir)
     plot_score_box(pred, thresholds, fig_dir)
+    plot_score_box_dual_panel(pred, thresholds, fig_dir)
     plot_feature_importance(imp, fig_dir)
     plot_core_combos(combo, fig_dir)
 

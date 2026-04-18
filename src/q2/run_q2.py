@@ -173,6 +173,25 @@ def cv_metrics(df: pd.DataFrame, features: List[str], label_col: str, seed: int)
     }
 
 
+def build_oof_scores(train_df: pd.DataFrame, features: List[str], label_col: str, seed: int) -> np.ndarray:
+    """对训练集生成折外(O O F)概率，降低阈值搜索的乐观偏差。"""
+    x = train_df[features].values
+    y = train_df[label_col].astype(int).values
+    oof = np.zeros(len(train_df), dtype=float)
+
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
+    for tr, va in skf.split(x, y):
+        model = GradientBoostingClassifier(
+            n_estimators=200,
+            max_depth=4,
+            learning_rate=0.1,
+            random_state=seed,
+        )
+        model.fit(x[tr], y[tr])
+        oof[va] = model.predict_proba(x[va])[:, 1]
+    return oof
+
+
 def add_lipid_abnormal_flags(df: pd.DataFrame, col_map: ColumnMap) -> pd.DataFrame:
     out = df.copy()
     tc, tg, ldl, hdl = col_map.core_lipids
@@ -185,15 +204,54 @@ def add_lipid_abnormal_flags(df: pd.DataFrame, col_map: ColumnMap) -> pd.DataFra
     return out
 
 
-def assign_web_rule_tier(df: pd.DataFrame, col_map: ColumnMap) -> pd.Series:
-    tan = df[col_map.tan_score]
-    act = df[col_map.activity_total]
-    abn = df["abnormal_lipid"] == 1
+def search_tier_thresholds(train_score: np.ndarray, train_label: np.ndarray) -> Tuple[float, float]:
+    """在训练集上搜索三层阈值，保证阳性率呈 低<中<高 的递进关系。"""
+    qs = np.arange(0.20, 0.91, 0.05)
+    cand = [float(np.quantile(train_score, q)) for q in qs]
 
-    high = (abn & (tan >= 60)) | ((~abn) & (tan >= 80) & (act < 40))
-    low = (~abn) & (tan < 60) & (act >= 40)
+    best = None
+    for low_th in cand:
+        for high_th in cand:
+            if high_th <= low_th:
+                continue
 
-    risk = np.where(high, "高风险", np.where(low, "低风险", "中风险"))
+            low_mask = train_score < low_th
+            mid_mask = (train_score >= low_th) & (train_score < high_th)
+            high_mask = train_score >= high_th
+
+            n_low = int(low_mask.sum())
+            n_mid = int(mid_mask.sum())
+            n_high = int(high_mask.sum())
+
+            # 每层至少占训练集10%，避免过小分层导致不稳定。
+            if min(n_low, n_mid, n_high) < max(1, int(0.10 * len(train_score))):
+                continue
+
+            r_low = float(train_label[low_mask].mean())
+            r_mid = float(train_label[mid_mask].mean())
+            r_high = float(train_label[high_mask].mean())
+
+            # 强制单调递进，并要求有最小分离度。
+            if not (r_low + 0.03 <= r_mid and r_mid + 0.01 <= r_high):
+                continue
+
+            sep = (r_high - r_mid) + (r_mid - r_low)
+            balance = -abs((n_low / len(train_score)) - (n_high / len(train_score)))
+            score = sep + 0.05 * balance
+
+            if best is None or score > best[0]:
+                best = (score, low_th, high_th)
+
+    if best is not None:
+        return float(best[1]), float(best[2])
+
+    # 若训练集分布极端导致无可行组合，则回退到稳定分位点。
+    return float(np.quantile(train_score, 0.35)), float(np.quantile(train_score, 0.75))
+
+
+def assign_score_tier(df: pd.DataFrame, score_col: str, low_threshold: float, high_threshold: float) -> pd.Series:
+    score = df[score_col]
+    risk = np.where(score >= high_threshold, "高风险", np.where(score < low_threshold, "低风险", "中风险"))
     return pd.Series(risk, index=df.index)
 
 
@@ -311,6 +369,10 @@ def main() -> None:
 
     # 用轨道A模型生成风险分值（用于输出与可视化）
     train_df, val_df, test_df = split_data(df, col_map.label, args.seed)
+
+    # 训练集分值采用OOF，避免in-sample过乐观导致分层异常。
+    train_oof_prob = build_oof_scores(train_df, no_lipid_features, col_map.label, args.seed)
+
     model_a = GradientBoostingClassifier(
         n_estimators=200,
         max_depth=4,
@@ -318,7 +380,18 @@ def main() -> None:
         random_state=args.seed,
     )
     model_a.fit(train_df[no_lipid_features].values, train_df[col_map.label].values)
-    all_prob = model_a.predict_proba(df[no_lipid_features].values)[:, 1]
+
+    val_prob = model_a.predict_proba(val_df[no_lipid_features].values)[:, 1]
+    test_prob = model_a.predict_proba(test_df[no_lipid_features].values)[:, 1]
+
+    # 按样本ID合并三段分值：train用OOF，val/test用留出预测。
+    score_map: Dict[int, float] = {}
+    for sid, p in zip(train_df[col_map.sample_id].astype(int).tolist(), train_oof_prob.tolist()):
+        score_map[int(sid)] = float(p)
+    for sid, p in zip(val_df[col_map.sample_id].astype(int).tolist(), val_prob.tolist()):
+        score_map[int(sid)] = float(p)
+    for sid, p in zip(test_df[col_map.sample_id].astype(int).tolist(), test_prob.tolist()):
+        score_map[int(sid)] = float(p)
 
     pred_df = df[
         [
@@ -344,9 +417,22 @@ def main() -> None:
     if col_map.constitution_label is not None:
         pred_df[col_map.constitution_label] = df[col_map.constitution_label]
 
-    pred_df["risk_score"] = all_prob
-    pred_df["risk_index"] = all_prob
-    pred_df["risk_level"] = assign_web_rule_tier(pred_df, col_map)
+    pred_df["risk_score"] = pred_df[col_map.sample_id].astype(int).map(score_map)
+
+    # 阈值仅在训练集分值上估计，避免泄漏。
+    train_prob = train_oof_prob
+    low_threshold, high_threshold = search_tier_thresholds(
+        train_prob,
+        train_df[col_map.label].astype(int).values,
+    )
+    pred_df["risk_level"] = assign_score_tier(
+        pred_df,
+        score_col="risk_score",
+        low_threshold=float(low_threshold),
+        high_threshold=float(high_threshold),
+    )
+
+    pred_df["risk_index"] = pred_df["risk_score"]
 
     train_ids = set(train_df[col_map.sample_id].tolist())
     val_ids = set(val_df[col_map.sample_id].tolist())
@@ -354,17 +440,12 @@ def main() -> None:
         lambda x: "train" if x in train_ids else ("val" if x in val_ids else "test")
     )
 
-    # 规则命中标记（与题目阈值一致）
-    pred_df["rule_hit_high_1"] = ((pred_df["abnormal_lipid"] == 1) & (pred_df[col_map.tan_score] >= 60)).astype(int)
-    pred_df["rule_hit_high_2"] = (
-        (pred_df["abnormal_lipid"] == 0)
-        & (pred_df[col_map.tan_score] >= 80)
-        & (pred_df[col_map.activity_total] < 40)
+    # 辅助解释标记（不参与风险层级计算）
+    pred_df["profile_tan_ge_70_act_lt_40"] = (
+        (pred_df[col_map.tan_score] >= 70) & (pred_df[col_map.activity_total] < 40)
     ).astype(int)
-    pred_df["rule_hit_low_1"] = (
-        (pred_df["abnormal_lipid"] == 0)
-        & (pred_df[col_map.tan_score] < 60)
-        & (pred_df[col_map.activity_total] >= 40)
+    pred_df["profile_tan_lt_50_act_ge_60"] = (
+        (pred_df[col_map.tan_score] < 50) & (pred_df[col_map.activity_total] >= 60)
     ).astype(int)
 
     pred_df.to_csv(output_dir / "q2_risk_predictions.csv", index=False, encoding="utf-8-sig")
@@ -386,13 +467,14 @@ def main() -> None:
     combo_df.to_csv(output_dir / "q2_high_risk_core_combos.csv", index=False, encoding="utf-8-sig")
 
     thresholds = {
-        "rule_based_tier": {
-            "high_risk": [
-                "血脂异常 且 痰湿积分>=60",
-                "血脂正常 且 痰湿积分>=80 且 活动<40",
+        "score_based_tier": {
+            "base_rule": [
+                f"risk_score < {float(low_threshold):.6f} -> 低风险",
+                f"{float(low_threshold):.6f} <= risk_score < {float(high_threshold):.6f} -> 中风险",
+                f"risk_score >= {float(high_threshold):.6f} -> 高风险",
             ],
-            "low_risk": ["血脂正常 且 痰湿积分<60 且 活动>=40"],
-            "middle_risk": ["不满足高风险与低风险者"],
+            "threshold_selection": "在训练集上网格搜索分位点，约束三层阳性率呈低<中<高并保证每层最小样本占比。",
+            "note": "分层仅依赖轨道A去血脂模型分值，不使用核心血脂阈值；痰湿/活动仅用于人群画像解释。",
         },
         "lipid_abnormal_definition": {
             "TC": ">6.2 mmol/L",

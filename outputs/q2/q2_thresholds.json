@@ -1,15 +1,12 @@
 {
-  "rule_based_tier": {
-    "high_risk": [
-      "血脂异常 且 痰湿积分>=60",
-      "血脂正常 且 痰湿积分>=80 且 活动<40"
+  "score_based_tier": {
+    "base_rule": [
+      "risk_score < 0.561733 -> 低风险",
+      "0.561733 <= risk_score < 0.998873 -> 中风险",
+      "risk_score >= 0.998873 -> 高风险"
     ],
-    "low_risk": [
-      "血脂正常 且 痰湿积分<60 且 活动>=40"
-    ],
-    "middle_risk": [
-      "不满足高风险与低风险者"
-    ]
+    "threshold_selection": "在训练集上网格搜索分位点，约束三层阳性率呈低<中<高并保证每层最小样本占比。",
+    "note": "分层仅依赖轨道A去血脂模型分值，不使用核心血脂阈值；痰湿/活动仅用于人群画像解释。"
   },
   "lipid_abnormal_definition": {
     "TC": ">6.2 mmol/L",
